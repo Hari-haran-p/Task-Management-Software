@@ -1,96 +1,104 @@
 import React, { useEffect, useState } from "react";
+import "primereact/resources/themes/saga-blue/theme.css"; 
+import "primereact/resources/primereact.min.css";
+import "primeicons/primeicons.css";
 import axios from "axios";
+import Multiselect from "multiselect-react-dropdown";
 
-function AssignedEdit({ data, setOpenEdit }) {
-  console.log(data);
-
+function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
   const [formData, setFormData] = useState({
-    task_name: "",
+    title: "",
     task_desc: "",
     priority: "",
     due_date: "",
     assigned_to: "",
     assigned_by: "",
     status_id: "",
-    task_id: "",
+    id: "",
   });
 
+  const [levelBasedUser, setLevelBasedUser] = useState([]);
+  const userDetail = JSON.parse(localStorage.getItem("userDetails"));
+  
+  // Fetch eligible users based on level
+  const getUserByLevel = async (level) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/api/getUserByLevel`, {
+        params: { level },
+      });
+      setLevelBasedUser(response.data.results);
+    } catch (err) {
+      console.log({ "error fetching getUserByLevel": err });
+    }
+  };
+
+  // Set form data when the component loads
   useEffect(() => {
     if (data) {
-      setFormData(data);
+      setFormData({
+        ...data,
+        due_date: formatDate(new Date(data.due_date)),
+      });
     }
   }, [data]);
 
+  // Fetch eligible users once when the component mounts
+  useEffect(() => {
+    if (userDetail) {
+      getUserByLevel(userDetail.level); // Pass user's level to fetch eligible users
+    }
+  }, [userDetail]);
 
-  const HandleSubmit = async (e) => {
+  // Function to format Date object to YYYY-MM-DD
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Handle submission of the form
+  const HandleSubmit = async () => {
     if (window.confirm("Are you sure want to update ?")) {
-      // setIsLoading(true);
-      // e.preventDefault();  
       try {
         const response = await axios.put(
           "http://localhost:4000/api/updateTaskData",
           formData
         );
-
-        if (response.status == 201) {
-          console.log(response);
-          // setMessage(response.data.Data);
-          // onClose();
-          // setIsLoading(false);
+        if (response.status === 201) {
+          console.log("Task updated successfully");
         }
-        // setMessage(response.data);
       } catch (error) {
-        if (error.response) {
-          // setError(error.response.data.Data);
-          // onClose();
-          // setIsLoading(false);
-        }
         console.log(error);
       }
     }
   };
 
-
-  useEffect(() => {
-    if (data) {
-      const formattedData = {
-        ...data,
-        due_date: formatDate(new Date(data.due_date)) // Format due_date from Date() to YYYY-MM-DD
-      };
-      setFormData(formattedData);
-    }
-  }, [data]);
-  
-  // Function to format Date object to YYYY-MM-DD
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+  // Handle selecting users in the dropdown
+  const handleSelect = (selectedList) => {
+    setAssignedUsers(selectedList); // Update the assignedUsers state with selected users
   };
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-  
-    if (name === "due_date") {
-      const localDate = new Date(value);
-      // Convert local date to ensure correct handling
-      localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset());
-      setFormData({ ...formData, [name]: value }); 
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+
+  // Handle removing users in the dropdown
+  const handleRemove = (selectedList) => {
+    setAssignedUsers(selectedList); // Update the assignedUsers state when users are removed
   };
-  
 
-  console.log(formData);
 
-  var type = "add";
+  const combinedUserList = [...levelBasedUser, ...assignedUsers].filter(
+    (user, index, self) => index === self.findIndex((u) => u.id === user.id)
+  );
 
   return (
     <div
-      className={`modal-container ${type === "add" ? "dimmed" : ""}`}
+      className="modal-container"
       onClick={(e) => {
         if (e.target !== e.currentTarget) {
           return;
@@ -99,14 +107,15 @@ function AssignedEdit({ data, setOpenEdit }) {
       }}
     >
       <div className="modal">
-        <h3>{type === "edit" ? "Edit" : "Add New"} Task</h3>
-        <label htmlFor="task-name-input">Task Id</label>
+        <h3>Edit Task</h3>
+
+        <label htmlFor="task-id-input">Task Id</label>
         <div className="input-container">
           <input
-            value={formData.task_id} // Changed from data.task_id to formData.task_id
-            id="task-name-input"
+            value={formData.id}
+            id="task-id-input"
             type="text"
-            name="task_id"
+            name="id"
             disabled
           />
         </div>
@@ -114,183 +123,90 @@ function AssignedEdit({ data, setOpenEdit }) {
         <label htmlFor="task-name-input">Task Name</label>
         <div className="input-container">
           <input
-            value={formData.task_name}
+            value={formData.title}
             onChange={handleChange}
             id="task-name-input"
-            name="task_name"
+            name="title"
             type="text"
-            placeholder="e.g. Take coffee break"
-            // className={!isValid && !title.trim() ? "red-border" : ""}
+            placeholder="Task Name"
           />
-          {/* {!isValid && !title.trim() && (
-            <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )}  */}
         </div>
-        <label htmlFor="task-name-input">Description</label>
-        <div className="description-container">
+
+        <label htmlFor="task-desc-input">Description</label>
+        <div className="input-container">
           <textarea
             value={formData.task_desc}
             onChange={handleChange}
             name="task_desc"
-            id="task-description-input"
-            placeholder="e.g. It's always good to take a break. This 
-            15 minute break will  recharge the batteries 
-            a little."
+            id="task-desc-input"
+            placeholder="Task Description"
           />
         </div>
-        <label htmlFor="task-name-input">Priority</label>
+
+        <label htmlFor="priority-select">Priority</label>
         <div className="input-container">
           <select
             value={formData.priority}
             onChange={handleChange}
             name="priority"
-            id="task-name-input"
+            id="priority-select"
           >
-            <option value="" disabled>
-              Select Priority
-            </option>
+            <option value="" disabled>Select Priority</option>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </select>
-
-          <label htmlFor="task-name-input">Due Date</label>
-          <div className="input-container">
-            <input
-              value={formData.due_date || ""} // Display formatted date or empty if not available
-              onChange={handleChange}
-              name="due_date"
-              id="task-name-input"
-              type="date"
-            />
-          </div>
-
-          <label htmlFor="task-name-input">Assigned To</label>
-          <div className="input-container">
-            <input
-              value={formData.assigned_to}
-              onChange={handleChange}
-              name="assigned_to"
-              id="task-name-input"
-              type="text"
-              placeholder="e.g. Take coffee break"
-              // className={!isValid && !title.trim() ? "red-border" : ""}
-            />
-            {/* {!isValid && !title.trim() && (
-            <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )}  */}
-          </div>
-          {/* <label htmlFor="task-name-input">Assigned By</label>
-          <div className="input-container">
-            <input
-              value={formData.assigned_by}
-              // onChange={(e) => setTitle(e.target.value)}
-              id="task-name-input"
-              type="text"
-              placeholder="e.g. Take coffee break"
-              // className={!isValid && !title.trim() ? "red-border" : ""}
-            />
-            {!isValid && !title.trim() && (
-            <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )} 
-          </div> */}
-
-          <label htmlFor="task-name-input">Status</label>
-          <div className="input-container">
-            <select
-              value={formData.status_id}
-              onChange={handleChange}
-              name="status_id"
-              id="task-name-input"
-            >
-              <option value="" disabled>
-                Select Status
-              </option>
-              <option value="1">To Do</option>
-              <option value="2">In Progress</option>
-              <option value="3">Done</option>
-            </select>
-          </div>
-          {/* {!isValid && !title.trim() && (
-         <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )} */}
         </div>
 
-        {/* <label>Subtasks</label>
-        <div className="modal-columns">
-          {subtasks.map((subtask, index) => {
-            return (
-              <div className="modal-column" key={index}>
-                <div className="input-container">
-                  <input
-                    // onChange={(e) => {
-                    //   onChangeSubtasks(subtask.id, e.target.value);
-                    // }}
-                    type="text"
-                    value={subtask.title}
-                    className={
-                      !isValid && !subtask.title.trim() ? "red-border" : ""
-                    }
-                  />
-                  {!isValid && !subtask.title.trim() ? (
-                    <span className="cant-be-empty-span text-L">
-                      {" "}
-                      Can't be empty
-                    </span>
-                  ) : null}
-                </div>
-                <img
-                  src={crossIcon}
-                  alt="delete-column-icon"
-                  onClick={() => {
-                    // onDelete(subtask.id);
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div> */}
+        <label htmlFor="due-date-input">Due Date</label>
+        <div className="input-container">
+          <input
+            value={formData.due_date}
+            onChange={handleChange}
+            name="due_date"
+            id="due-date-input"
+            type="date"
+          />
+        </div>
 
-        {/* <button
-          onClick={() => {
-            setSubtasks((state) => [
-              ...state,
-              { title: "", isCompleted: false, id: uuidv4() },
-            ]);
-          }}
-          className="add-column-btn btn-light"
-        >
-          + Add New Subtask
-        </button>
+        <label htmlFor="assigned-users-select">Assigned To</label>
+        <Multiselect
+        options={combinedUserList} // Options from levelBasedUser + assignedUsers
+        displayValue="email" // Display user's email in the dropdown
+        onSelect={handleSelect} // Handle select
+        onRemove={handleRemove} // Handle remove
+        selectedValues={assignedUsers} // Pre-select assignedUsers as chips
+        placeholder="Select users"
+        style={{
+          optionContainer: {
+            fontSize: "12px",
+          },
+          chips: {
+            color: "white",
+            borderRadius: "4px",
+            padding: "5px",
+            margin: "2px",
+          },
+        }}
+      />
 
-        <div className="select-column-container">
-          <label className="text-M">Current Status</label>
+        <label htmlFor="status-select">Status</label>
+        <div className="input-container">
           <select
-            className="select-status text-L"
-            value={status}
-            onChange={onChangeStatus}
+            value={formData.status_id}
+            onChange={handleChange}
+            name="status_id"
+            id="status-select"
           >
-            {columns.map((col, index) => (
-              <option className="status-options" key={index}>
-                {col.name}
-              </option>
-            ))}
+            <option value="" disabled>Select Status</option>
+            <option value="1">To Do</option>
+            <option value="2">In Progress</option>
+            <option value="3">Done</option>
           </select>
-        </div> */}
+        </div>
 
-        <button
-          onClick={() => {
-            //   const isValid = validate();
-            //   if (isValid) {
-            //     onSubmit(type);
-            // setIsAssignedEditOpen(false);
-            //     type === "edit" && setIsTaskModalOpen(false);
-            //   }
-            HandleSubmit();
-          }}
-          className="create-btn"
-        >
-          Create Task
+        <button onClick={HandleSubmit} className="create-btn">
+          Update Task
         </button>
       </div>
     </div>

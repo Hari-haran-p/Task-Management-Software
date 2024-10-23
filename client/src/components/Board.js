@@ -3,7 +3,7 @@ import { useMediaQuery } from "react-responsive";
 import "../styles/Board.css";
 import Column from "./Column"; // Assuming the Column component is already defined
 import Sidebar from "./Sidebar";
-import axios from 'axios'; 
+import axios from "axios";
 import { useLocation } from "react-router-dom";
 import AssignedTask from "./AssignedTask";
 
@@ -12,12 +12,11 @@ export default function Board() {
   const [isSideBarOpen, setIsSideBarOpen] = useState(true);
   const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
   const [taskData, setTaskData] = useState();
-  
+
   const location = useLocation();
   const currentPath = location.pathname;
-// console.log(currentPath);
+  // console.log(currentPath);
 
-  
   const getTaskData = async () => {
     try {
       const userDetails = JSON.parse(localStorage.getItem('userDetails'));
@@ -28,41 +27,41 @@ export default function Board() {
       }
       const response = await axios.get(`http://localhost:4000/api/getTaskData?userEmail=${userEmail}`);
       setTaskData(response.data.results);
-  
+
     } catch (e) {
       console.log("Error fetching task data", e);
     }
   };
 
-  const [assignedData, setAssignedData ] = useState();
-
+  const [assignedData, setAssignedData] = useState();
 
   const getAssignedData = async () => {
-      try {
-        const userDetails = JSON.parse(localStorage.getItem('userDetails'));
-        const userId = userDetails ? userDetails.id : null;
-        
-        if (!userId) {
-          console.error("User id is not available");
-          return;
-        }
-        const response = await axios.get(`http://localhost:4000/api/getAssignedData?userId=${userId}`);
-        setAssignedData(response.data.results);
-      } catch (e) {
-        console.log("Error fetching task data", e);
+    try {
+      const userDetails = JSON.parse(localStorage.getItem("userDetails"));
+      const userId = userDetails ? userDetails.id : null;
+
+      if (!userId) {
+        console.error("User id is not available");
+        return;
       }
-    };
+      const response = await axios.get(
+        `http://localhost:4000/api/getAssignedData?userId=${userId}`
+      );
+      setAssignedData(response.data.results);
+    } catch (e) {
+      console.log("Error fetching task data", e);
+    }
+  };
 
+  // console.log(assignedData);
 
-    useEffect(() => {
-        getAssignedData();
-        getTaskData();
-    }, []);
+  useEffect(() => {
+    getAssignedData();
+    getTaskData();
+  }, []);
 
   // console.log({"jv":assignedData});
   
-
-
   return (
     <div
       className={isBigScreen && isSideBarOpen ? "board open-sidebar" : "board"}
@@ -75,17 +74,19 @@ export default function Board() {
       )}
 
       {/* {taskData.map((task, index) => { */}
-        {/* return  */}
-        {currentPath === '/mytask' && taskData && (
+      {/* return  */}
+      {currentPath === '/mytask' && taskData && (
         <Column taskData={taskData} />
       )}
-      {currentPath === '/assigned' && taskData && (
-    <div className="w-full">
-        <AssignedTask assignedData={assignedData} getAssignedData={getAssignedData} />
-    </div>
-)}
-      
-        
+      {currentPath === "/assigned" && assignedData && (
+        <div className="w-full">
+          <AssignedTask
+            assignedData={assignedData}
+            getAssignedData={getAssignedData}
+          />
+        </div>
+      )}
+
       {/* })} */}
 
       {/* <div
@@ -95,13 +96,10 @@ export default function Board() {
         }}
       >
         + New Column
-      </div> */}  
+      </div> */}
     </div>
   );
 }
-
-
-
 
 // import React, { useState } from "react";
 // // import { useSelector } from "react-redux";

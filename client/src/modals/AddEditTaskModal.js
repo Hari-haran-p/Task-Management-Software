@@ -4,6 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import crossIcon from "../assets/icon-cross.svg";
 // import boardsSlice from "../redux/boardsSlice";
 import "../styles/BoardModals.css";
+import "primereact/resources/themes/saga-blue/theme.css"; // or any other theme
+import "primereact/resources/primereact.min.css";
+import "primeicons/primeicons.css"; // for icons
 import axios from "axios";
 import Multiselect from "multiselect-react-dropdown";
 import { Toast } from 'primereact/toast';
@@ -156,6 +159,28 @@ export default function AddEditTaskModal({
 
   const { task_name, priority, due_date, status_id, assigned_by, task_desc } =
     formData;
+
+    const showSuccess = (message) => {
+      if (toast.current) {
+        toast.current.show({
+          severity: "success",
+          summary: "Success",
+          detail: message,
+          life: 3000,
+        });
+      }
+    };
+  
+    const showError = (message) => {
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: message,
+        life: 3000,
+      });
+    };
+    
+    
   const user_ids = selectedUsers.map((user) => user.id);
 
   const addNewTask = async () => {
@@ -172,11 +197,23 @@ export default function AddEditTaskModal({
           selectedUsers: user_ids,
         }
       );
-      console.log(response);
+      const serverMessage = response.data.message;
+      if (response.status === 200) {
+        showSuccess(serverMessage);
+        setTimeout(() => {
+          refreshPage(); 
+        }, 3000);
+      }
+      
     } catch (err) {
       console.log({ "error pushing NewTask": err });
     }
   };
+
+  const refreshPage = () => {
+    window.location.reload();
+  };
+
 
   // Handle selection of options
   const handleSelect = (selectedList, selectedItem) => {
@@ -189,10 +226,6 @@ export default function AddEditTaskModal({
   
   const toast = useRef(null);
 
-  const show = () => {
-      toast.current.show({ severity: 'info', summary: 'Info', detail: 'Message Content' });
-  };
-
   return (
     <div
       className={`modal-container ${type === "add" ? "dimmed" : ""}`}
@@ -203,6 +236,7 @@ export default function AddEditTaskModal({
         setIsAddTaskModalOpen(false);
       }}
     >
+      <Toast ref={toast} />
       <form
         onSubmit={() => {
           addNewTask();
