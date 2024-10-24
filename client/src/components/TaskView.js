@@ -19,7 +19,7 @@ function TaskView({setIsAddTaskModalOpen,isTaskModalOpen,type}) {
         }}
         className="modal"
       >
-        <h3>{type === "edit" ? "Edit" : "Add New"} Task</h3>
+        <h3>View Task</h3>
 
         <label htmlFor="task-name-input">Task Name</label>
         <div className="input-container">

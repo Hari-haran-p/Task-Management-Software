@@ -137,20 +137,26 @@ function AssignedTask({ assignedData, getAssignedData }) {
         console.error("Task ID is not available");
         return;
       }
+
       const response = await axios.post(
         `http://localhost:4000/api/deleteTask`,
         {
           taskId: taskId,
         }
       );
+
       const serverMessage = response.data.message;
 
       if (response.status === 200) {
         // Check if the server responded successfully
-        showSuccess(serverMessage);
-        setTimeout(() => {
-          refreshPage(); // Delay refresh to let the toast display
-        }, 3000);
+        if (response.data.success === 1) {
+          showSuccess(serverMessage); // Show the message first
+
+          // Delay the page refresh by 2 seconds (adjust as needed)
+          setTimeout(() => {
+            refreshPage();
+          }, 2000);
+        }
       }
     } catch (e) {
       showError("Error deleting task");
@@ -160,7 +166,7 @@ function AssignedTask({ assignedData, getAssignedData }) {
 
   const [assignedUsers, setAssignedUsers] = useState();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  console.log({ ass: assignedUsers });
+  // console.log({ ass: assignedUsers });
 
   const getAssignedUsers = async (taskId) => {
     try {
@@ -213,8 +219,6 @@ function AssignedTask({ assignedData, getAssignedData }) {
       life: 3000,
     });
   };
-
-  console.log(assignedUsers);
 
   return (
     <div className="p-5">
@@ -358,10 +362,10 @@ function AssignedTask({ assignedData, getAssignedData }) {
             {dropdownVisible === data.id && (
               <div
                 ref={dropdownRef}
-                className="absolute top-11 right-12  w-32 dropdown-content visible z-20 bg-white dark:bg-gray-800 shadow-md rounded-lg"
+                className="absolute top-11 right-12  w-32 dropdown-content visible z-10 bg-white dark:bg-gray-800 shadow-md rounded-lg"
               >
                 <ul
-                  className="py-1 px-1 text-sm text-gray-700 dark:text-gray-200 "
+                  className="py-1 px-1 text-sm text-gray-700 dark:text-gray-200"
                   aria-labelledby="apple-imac-27-dropdown-button"
                 >
                   <>
