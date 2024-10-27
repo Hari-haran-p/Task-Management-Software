@@ -213,6 +213,8 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
     });
   };
 
+  const [viewData,setViewData] = useState();
+
   return (
     <div className="p-5">
       <div className="flex flex-wrap justify-center md:justify-between items-center mb-5">
@@ -251,7 +253,8 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
                       ? "ToDo"
                       : data.column_id === 2
                       ? "In Progress"
-                      : "Done"}
+                      : "Done"
+                      }
                   </div>
                 </div>
                 <div>
@@ -303,6 +306,7 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
                             className="block cursor-pointer py-1 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                             onClick={() => {
                               setIsTaskModalOpen(true);
+                              setViewData(data)
                             }}
                           >
                             View
@@ -335,11 +339,11 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
                 </div>
               </div>
               <div className="w-full flex flex-wrap items-center pl-5">
-                <div className="font-extrabold text-2xl">
+                <div title={data.title} className="font-extrabold cursor-pointer text-2xl">
                   {data.title}
                 </div>
               </div>
-              <div className="w-full h-24 pl-5 pt-2">
+              <div title={data.task_desc} className="w-full cursor-pointer h-24 pl-5 pt-2">
                 <div className="text-sm">
                  {data.task_desc}
                 </div>
@@ -348,189 +352,12 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
                 <div className="text-sm font-bold ">{formatDateToIST(data.due_date)}</div>
               </div>
             </div>
-
-          //     <div
-          //       key={data.id}
-          //       style={{ border: "1px solid #d3d3d3" }}
-          //       className="bg-white relative p-5 rounded-md w-3/12 flex flex-col"
-          //     >
-          //       {/* Each item is a flex container with a column layout and responsive width */}
-          //       <div className="flex gap-2 mb-2 justify-between items-center ">
-          //         <div className="flex gap-5 justify-start items-center ">
-          //           <div
-          //             className={`px-2 py-1 flex gap-2 justify-center items-center text-lg rounded-md border-black ${
-          //               data.column_id === 3
-          //                 ? "bg-green-100"
-          //                 : data.column_id === 2
-          //                 ? "bg-yellow-100"
-          //                 : "bg-blue-100"
-          //             }`}
-          //           >
-          //             <i
-          //               className="pi pi-tablet font-bold"
-          //               style={{
-          //                 color:
-          //                   data.column_id === 3
-          //                     ? "#218838"
-          //                     : data.column_id === 2
-          //                     ? "#f9c23c"
-          //                     : "#007bff",
-          //               }}
-          //             ></i>
-
-          //             <p
-          //               className="font-medium"
-          //               style={{ color: "#DAA520", fontWeight: "500" }}
-          //             >
-          //               {data.column_id === 1
-          //                 ? "ToDo"
-          //                 : data.column_id === 2
-          //                 ? "In Progress"
-          //                 : "Done"}
-          //             </p>
-          //           </div>
-          //           <div
-          //             style={{
-          //               backgroundColor:
-          //                 data.priority === "Low"
-          //                   ? "#f2e8ff"
-          //                   : data.priority === "Medium"
-          //                   ? "#e8ffea"
-          //                   : "#fce1e4",
-          //             }}
-          //             className="px-3 py-1 flex gap-2 justify-center items-center text-lg rounded-md w-fit border-black"
-          //           >
-          //             <i
-          //               className="pi pi-circle-fill font-bold"
-          //               style={{
-          //                 color:
-          //                   data.priority === "Low"
-          //                     ? "#6a00ff"
-          //                     : data.priority === "Medium"
-          //                     ? "#09fc05"
-          //                     : "#fc0522",
-          //                 fontSize: "8px",
-          //               }}
-          //             ></i>
-
-          //             <p
-          //               className="font-bold"
-          //               style={{
-          //                 color:
-          //                   data.priority === "Low"
-          //                     ? "#6a00ff"
-          //                     : data.priority === "Medium"
-          //                     ? "#09fc05"
-          //                     : "#ba3451",
-          //                 fontWeight: "600",
-          //               }}
-          //             >
-          //               {data.priority}
-          //             </p>
-          //           </div>
-          //         </div>
-
-          //         <button
-          //           data-dropdown-toggle="apple-imac-27-dropdown"
-          //           onClick={(e) => {
-          //             handleActionClick(e, data.id);
-          //             getAssignedUsers(data.id);
-          //           }}
-          //           className={`inline-flex items-center p-0.5 text-sm font-medium text-center ${
-          //             dropdownVisible === data.id ? "border" : ""
-          //           }  text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100`}
-          //           type="button"
-          //         >
-          //           <svg
-          //             className="w-5 h-5"
-          //             aria-hidden="true"
-          //             fill="currentColor"
-          //             viewBox="0 0 20 20"
-          //             xmlns="http://www.w3.org/2000/svg"
-          //           >
-          //             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-          //           </svg>
-          //         </button>
-
-          //         {/* <i
-          //           // onClick={() => handleOpenEdit(data)}
-          //           className="pi pi-ellipsis-v cursor-pointer"
-          //           style={{ color: "#635fc7", fontSize: "15px" }}
-          //         ></i> */}
-          //       </div>
-
-          //       {dropdownVisible === data.id && (
-          //         <div
-          //           ref={dropdownRef}
-          //           className="absolute top-11 right-12  w-32 dropdown-content visible z-10 bg-white dark:bg-gray-800 shadow-md rounded-lg"
-          //         >
-          //           <ul
-          //             className="py-1 px-1 text-sm text-gray-700 dark:text-gray-200"
-          //             aria-labelledby="apple-imac-27-dropdown-button"
-          //           >
-          //             <>
-          //               {
-          //                 <li
-          //                   className="block cursor-pointer py-1 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-          //                   onClick={() => {
-          //                     setIsTaskModalOpen(true);
-          //                   }}
-          //                 >
-          //                   View
-          //                 </li>
-          //               }
-          //               {
-          //                 <li
-          //                   className="block py-1 cursor-pointer px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-          //                   onClick={() => {
-          //                     handleOpenEdit(data);
-          //                   }}
-          //                 >
-          //                   Edit
-          //                 </li>
-          //               }
-          //               {
-          //                 <li
-          //                   className="block py-1 px-4 cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-          //                   onClick={() => {
-          //                     deleteTask(data.id);
-          //                   }}
-          //                 >
-          //                   Delete
-          //                 </li>
-          //               }
-          //             </>
-          //           </ul>
-          //         </div>
-          //       )}
-
-          //       <div
-          //         title={data.title}
-          //         className="text-2xl cursor-pointer font-bold mb-3 font-sm w-64 overflow-hidden whitespace-nowrap text-ellipsis "
-          //       >
-          //         {/* Task name displayed in bold */}
-          //         {data.title}
-          //       </div>
-          //       <div
-          //         title={data.task_desc}
-          //         className="mb-2 cursor-pointer font-sm w-full overflow-hidden whitespace-nowrap text-ellipsis text-sm"
-          //       >
-          //         {data.task_desc}
-          //       </div>
-          //       <hr className="border-t border-gray-300 my-2" />
-          //       <div className=" font-sm text-sm">
-          //         {/* Due date of the task */}
-          //         {formatDateToIST(data.due_date)}
-          //       </div>
-          //       {/* <div className="mb-2">
-          //   {data.assigned_to}
-          // </div> */}
-          //     </div>
         ))}
       </div>
 
       {isTaskModalOpen && (
         <TaskView
+          viewData = {viewData}
           setIsAddTaskModalOpen={setIsTaskModalOpen}
           isTaskModalOpen={isTaskModalOpen}
           assignedUsers={assignedUsers}
