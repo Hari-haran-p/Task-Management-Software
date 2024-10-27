@@ -86,7 +86,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
           selectedUsers: user_ids,
         });
   
-        if (response.status === 200) { // 200 for a successful update
+        if (response.status === 200) { 
           console.log("Task updated successfully");
         }
       } catch (error) {

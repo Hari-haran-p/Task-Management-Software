@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import "../styles/Header.css";
 import logo from "../assets/logo-mobile.svg";
 import addTaskMobile from "../assets/icon-add-task-mobile.svg";
@@ -7,24 +6,12 @@ import iconDown from "../assets/icon-chevron-down.svg";
 import iconUp from "../assets/icon-chevron-up.svg";
 import elipsis from "../assets/icon-vertical-ellipsis.svg";
 import HeaderDropdown from "./HeaderDropdown";
-// import ElipsisMenu from "./ElipsisMenu.js";
 import AddEditTaskModal from "../modals/AddEditTaskModal";
-// import AddEditBoardModal from "../modals/AddEditBoardModal";
-// import DeleteModal from "../modals/DeleteModal";
-// import boardsSlice from "../redux/boardsSlice";
 import { useMediaQuery } from "react-responsive";
 
 export default function Header() {
   const isBigScreen = useMediaQuery({ query: "(min-width: 768px)" });
-  const dispatch = useDispatch();
-  // const boards = useSelector((state) => state.boards);
-  // const board = boards.find((board) => board.isActive);
-
   const [openDropdown, setOpenDropdown] = useState(false);
-  // const [isElipsisMenuOpen, setIsElipsisMenuOpen] = useState(false);
-  // const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
-  // const [boardType, setBoardType] = useState("");
-  // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const onDropdownClick = () => {
@@ -51,6 +38,8 @@ export default function Header() {
   //     setIsDeleteModalOpen(false);
   //   }
   // };
+
+
 
   return (
     <div className="header-container">
@@ -128,6 +117,7 @@ export default function Header() {
           setIsAddTaskModalOpen={setIsTaskModalOpen}
           isTaskModalOpen={isTaskModalOpen}
           type="add"
+
         />
       )}
     </div>

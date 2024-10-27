@@ -38,10 +38,9 @@ app.get("/api/getTaskData", async (req, res) => {
   try {
     const results = await db.query(query, [userEmail]);
     if (results.length > 0) {
-      res.json({ results });
-      // console.log(results);
+      res.json({ results});
     } else {
-      res.status(401).json({ message: "No tasks found for this user" });
+      res.json({ message: "No tasks found for this user" });
     }
   } catch (err) {
     console.error("Database query error:", err);
@@ -56,11 +55,7 @@ app.get("/api/getAssignedData", async (req, res) => {
 
   try {
     const results = await db.query(query, [userId]);
-    if (results.length > 0) {
-      res.json({ results });
-    } else {
-      res.status(401).json({ message: "No tasks found for this user" });
-    }
+    res.json({ results });
   } catch (err) {
     console.error("Database query error:", err);
     res.status(500).json({ message: "Database error", error: err });
@@ -70,30 +65,48 @@ app.get("/api/getAssignedData", async (req, res) => {
 app.post("/api/deleteTask", async (req, res) => {
   const taskId = req.body.taskId;
   const deleteTaskQuery = "DELETE FROM tasks WHERE id = ?";
-  const deleteTaskAssigneesQuery = "DELETE FROM task_assignees WHERE task_id = ?";
+  const deleteTaskAssigneesQuery = "DELETE FROM task_assignee WHERE task_id = ?";
+  
+  let connection;
 
   try {
-    // Start a transaction
-    await db.query("START TRANSACTION");
-    await db.query(deleteTaskAssigneesQuery, [taskId]);
+    // Get a connection from the pool
+    connection = await db.getConnection();
+    await connection.beginTransaction(); // Start a transaction
 
-    const results = await db.query(deleteTaskQuery, [taskId]);
-    var success = 0;
-    if (results.affectedRows > 0) {
-      await db.query("COMMIT");
-      success = 1;
-      res.json({ message: "Task deleted successfully",success: success });
+    // Delete task assignees first
+    const deleteAssigneesResult = await new Promise((resolve, reject) => {
+      connection.query(deleteTaskAssigneesQuery, [taskId], (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
+    });
+    console.log("Deleted task assignees:", deleteAssigneesResult.affectedRows);
+
+    // Delete the task itself
+    const deleteTaskResult = await new Promise((resolve, reject) => {
+      connection.query(deleteTaskQuery, [taskId], (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
+    });
+
+    // Check if any task was deleted
+    if (deleteTaskResult.affectedRows > 0) {
+      await connection.commit(); // Commit the transaction
+      res.json({ message: "Task deleted successfully", success: 1 });
     } else {
-      await db.query("ROLLBACK");
-      res.status(404).json({ message: "Task not found" });
+      await connection.rollback(); // Rollback if task wasn't found
+      res.status(404).json({ message: "Task not found", success: 0 });
     }
   } catch (err) {
-    await db.query("ROLLBACK");
+    if (connection) await connection.rollback(); // Rollback transaction on error
     console.error("Database query error:", err);
-    res.status(500).json({ message: "Database error", error: err });
+    res.status(500).json({ message: "Database error", error: err.message });
+  } finally {
+    if (connection) connection.release(); // Release the connection back to the pool
   }
 });
-
 
 app.post("/api/getAssignedUsers", async (req, res) => {
   const taskId = req.body.taskId;
@@ -128,59 +141,60 @@ app.get("/api/getUserByLevel", async (req, res) => {
 });
 
 app.post("/api/addNewTask", async (req, res) => {
-  const {
-    task_name,
-    priority,
-    due_date,
-    status_id,
-    assigned_by,
-    task_desc,
-    selectedUsers,
-  } = req.body;
-
-  let success = 0; // Track the success count
-
-  console.log("Starting transaction...");
-  console.log("Task Details:", { task_name, priority, due_date, status_id, assigned_by, task_desc });
-  console.log("Selected Users:", selectedUsers); // Log the selected users for debugging
-
-  const taskQuery =
-    "INSERT INTO tasks (title, priority, due_date, column_id, assigned_by, task_desc) VALUES(?,?,?,?,?,?)";
-  const userTaskQuery = "INSERT INTO task_assignees (task_id, user_id) VALUES ?";
-
+  let connection;
   try {
-    await db.query("START TRANSACTION");
+    connection = await db.getConnection(); // Get a connection from the pool
+    await connection.beginTransaction(); // Start a transaction
 
-    // Insert the task
-    const taskResult = await db.query(taskQuery, [
+    const {
       task_name,
       priority,
       due_date,
       status_id,
       assigned_by,
       task_desc,
-    ]);
+      selectedUsers,
+    } = req.body;
+
+    // console.log("Starting transaction...");
+    // console.log("Task Details:", { task_name, priority, due_date, status_id, assigned_by, task_desc });
+    // console.log("Selected Users:", selectedUsers); // Log for debugging
+
+    const taskQuery =
+      "INSERT INTO tasks (title, priority, due_date, column_id, assigned_by, task_desc) VALUES(?,?,?,?,?,?)";
+    const userTaskQuery =
+      "INSERT INTO task_assignee (task_id, user_id) VALUES ?";
+
+    // Insert the task
+    const taskResult = await new Promise((resolve, reject) => {
+      connection.query(
+        taskQuery,
+        [task_name, priority, due_date, status_id, assigned_by, task_desc],
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+    });
 
     const task_id = taskResult.insertId; // Get inserted task's ID
-    console.log("Task inserted with ID:", task_id);
+    // console.log("Task inserted with ID:", task_id);
 
-    if (taskResult.affectedRows > 0) {
-      success++; // Task insertion was successful
-    } else {
-      throw new Error("Task insertion failed");
-    }
-
-    // Prepare bulk insert for task_assignees
+    // Prepare bulk insert for task_assignee
     if (selectedUsers.length > 0) {
       const values = selectedUsers.map((user_id) => [task_id, user_id]);
-      console.log("Values to insert into task_assignees:", values);
+      // console.log("Values to insert into task_assignee:", values);
 
-      // Insert into task_assignees
-      const userTaskResult = await db.query(userTaskQuery, [values]);
+      // Insert into task_assignee
+      const userTaskResult = await new Promise((resolve, reject) => {
+        connection.query(userTaskQuery, [values], (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        });
+      });
 
       if (userTaskResult.affectedRows === values.length) {
-        success++; // All assignees were inserted successfully
-        console.log("All task assignees inserted successfully");
+        // console.log("All task assignees inserted successfully");
       } else {
         throw new Error("Not all task assignees were inserted");
       }
@@ -189,30 +203,27 @@ app.post("/api/addNewTask", async (req, res) => {
     }
 
     // Commit transaction if everything succeeded
-    await db.query("COMMIT");
-    console.log("Transaction committed successfully");
+    await connection.commit();
+    // console.log("Transaction committed successfully");
 
     // Send success response
     res.json({
-      message: "Task and assignees added successfully",
+      message: "Task Added Successfully",
       task_id: task_id,
       assignedUsers: selectedUsers,
-      success: success,
     });
-
   } catch (err) {
     // Rollback transaction on error
-    await db.query("ROLLBACK");
+    if (connection) await connection.rollback();
     console.error("Transaction failed and rolled back:", err);
-
     res.status(500).json({
       message: "Database error during task or assignee insertion",
       error: err.message,
     });
+  } finally {
+    if (connection) connection.release(); // Release the connection back to the pool
   }
 });
-
-
 
 app.post("/api/updateTask", async (req, res) => {
   const {
@@ -228,10 +239,16 @@ app.post("/api/updateTask", async (req, res) => {
 
   const userIds = selectedUsers;
 
-  console.log(task_desc, task_name, task_id, priority, due_date, status_id, assigned_by);
+  console.log(
+    task_desc,
+    task_name,
+    task_id,
+    priority,
+    due_date,
+    status_id,
+    assigned_by
+  );
   console.log(userIds);
-  
-  
 
   if (!Array.isArray(userIds)) {
     return res.status(400).json({ message: "Invalid selectedUsers format" });
@@ -240,9 +257,9 @@ app.post("/api/updateTask", async (req, res) => {
   const updateTaskQuery =
     "UPDATE tasks SET title = ?, priority = ?, due_date = ?, column_id = ?, assigned_by = ?, task_desc = ? WHERE id = ?";
   const deleteOldAssigneesQuery =
-    "DELETE FROM task_assignees WHERE task_id = ? AND user_id NOT IN (?)";
+    "DELETE FROM task_assignee WHERE task_id = ? AND user_id NOT IN (?)";
   const insertNewAssigneesQuery =
-    "INSERT IGNORE INTO task_assignees (task_id, user_id) VALUES ?"; // Using INSERT IGNORE
+    "INSERT INTO task_assignee (task_id, user_id) VALUES ?"; // Using INSERT IGNORE
 
   try {
     await db.query("START TRANSACTION");
@@ -263,7 +280,7 @@ app.post("/api/updateTask", async (req, res) => {
 
     // Fetch existing users assigned to the task
     const [existingUsers] = await db.query(
-      "SELECT user_id FROM task_assignees WHERE task_id = ?",
+      "SELECT user_id FROM task_assignee WHERE task_id = ?",
       [task_id]
     );
 
@@ -293,13 +310,6 @@ app.post("/api/updateTask", async (req, res) => {
     res.status(500).json({ message: "Database error", error: err });
   }
 });
-
-
-
-
-
-
-
 
 app.listen(4000, () => {
   console.log(`Server running at 4000`);
