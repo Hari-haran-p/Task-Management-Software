@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 import AssignedTask from "./AssignedTask";
+import Dashboard from "./Dashboard";
 
 export default function Board() {
   const isBigScreen = useMediaQuery({ query: "(min-width: 768px)" });
@@ -73,6 +74,14 @@ export default function Board() {
         />
       )}
 
+      {currentPath === "/dashboard" &&  (
+        <div className="w-full">
+          <Dashboard
+            // assignedData={assignedData}
+            // getAssignedData={getAssignedData}
+          />
+        </div>
+      )}
       {/* {taskData.map((task, index) => { */}
       {/* return  */}
       {currentPath === '/mytask' && taskData && (
