@@ -13,7 +13,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     due_date: "",
     assigned_to: "",
     assigned_by: "",
-    status_id: "",
+    status_id: 1,
     id: "",
   });
 
@@ -64,22 +64,37 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle submission of the form
+  const { id, task_name, priority, due_date, status_id, assigned_by, task_desc } = formData;
+  // console.log(formData);
+  
+
+  const user_ids = assignedUsers.map((user) => user.user_id);
+  // console.log(user_ids);
+  
+  
   const HandleSubmit = async () => {
-    if (window.confirm("Are you sure want to update ?")) {
+    if (window.confirm("Are you sure you want to update?")) {
       try {
-        const response = await axios.put(
-          "http://localhost:4000/api/updateTaskData",
-          formData
-        );
-        if (response.status === 201) {
+        const response = await axios.post("http://localhost:4000/api/updateTask", {
+          task_id: id,
+          task_name: task_name,
+          priority: priority,
+          due_date: due_date,
+          status_id: status_id,
+          assigned_by: assigned_by,
+          task_desc: task_desc,
+          selectedUsers: user_ids,
+        });
+  
+        if (response.status === 200) { 
           console.log("Task updated successfully");
         }
       } catch (error) {
-        console.log(error);
+        console.log("Error updating task:", error);
       }
     }
   };
+  
 
   // Handle selecting users in the dropdown
   const handleSelect = (selectedList) => {
@@ -96,9 +111,14 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     (user, index, self) => index === self.findIndex((u) => u.id === user.id)
   );
 
+  console.log({"ass":assignedUsers});
+  
+
+  var type = "add"
+
   return (
     <div
-      className="modal-container"
+    className={`modal-container ${type === "add" ? "dimmed" : ""}`}
       onClick={(e) => {
         if (e.target !== e.currentTarget) {
           return;
@@ -120,7 +140,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
           />
         </div>
 
-        <label htmlFor="task-name-input">Task Name</label>
+        <label className="pt-5" htmlFor="task-name-input">Task Name</label>
         <div className="input-container">
           <input
             value={formData.title}
@@ -158,7 +178,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
           </select>
         </div>
 
-        <label htmlFor="due-date-input">Due Date</label>
+        <label className="pt-5" htmlFor="due-date-input">Due Date</label>
         <div className="input-container">
           <input
             value={formData.due_date}
@@ -169,7 +189,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
           />
         </div>
 
-        <label htmlFor="assigned-users-select">Assigned To</label>
+        <label className="pt-5" htmlFor="assigned-users-select">Assigned To</label>
         <Multiselect
         options={combinedUserList} // Options from levelBasedUser + assignedUsers
         displayValue="email" // Display user's email in the dropdown
@@ -190,7 +210,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
         }}
       />
 
-        <label htmlFor="status-select">Status</label>
+        {/* <label htmlFor="status-select">Status</label>
         <div className="input-container">
           <select
             value={formData.status_id}
@@ -203,7 +223,7 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
             <option value="2">In Progress</option>
             <option value="3">Done</option>
           </select>
-        </div>
+        </div> */}
 
         <button onClick={HandleSubmit} className="create-btn">
           Update Task

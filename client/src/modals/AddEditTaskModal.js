@@ -1,133 +1,43 @@
-import React, { useEffect, useState , useRef } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-import { v4 as uuidv4 } from "uuid";
-import crossIcon from "../assets/icon-cross.svg";
-// import boardsSlice from "../redux/boardsSlice";
+import React, { useEffect, useState, useRef } from "react";
 import "../styles/BoardModals.css";
-import "primereact/resources/themes/saga-blue/theme.css"; // or any other theme
+import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
-import "primeicons/primeicons.css"; // for icons
+import "primeicons/primeicons.css";
 import axios from "axios";
 import Multiselect from "multiselect-react-dropdown";
-import { Toast } from 'primereact/toast';
+import { useDispatch } from "react-redux";
+import { setRefresh } from "../redux/refreshSlice";
+import { Button } from "primereact/button";
+import { Toast } from "primereact/toast";
+// import { ToastContainer, toast } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
 
 export default function AddEditTaskModal({
   type,
   isTaskModalOpen,
   setIsAddTaskModalOpen,
-  taskIndex,
   prevColIndex = 0,
 }) {
-  //   const dispatch = useDispatch();
-  // const [isFirstLoad, setIsFirstLoad] = useState(true);
-  // const [isValid, setIsValid] = useState(true);
-  // const [title, setTitle] = useState("");
-  // const [description, setDescription] = useState("");
-  //   const board = useSelector((state) => state.boards).find(
-  //     (board) => board.isActive
-  //   );
-  //   const columns = board.columns;
-  //   const col = columns.find((col, index) => index === prevColIndex);
-  //   const task = col ? col.tasks.find((task, index) => index === taskIndex) : [];
-  //   const [status, setStatus] = useState(columns[prevColIndex].name);
-  // const [newColIndex, setNewColIndex] = useState(prevColIndex);
-  // const [subtasks, setSubtasks] = useState([
-  //   { title: "", isCompleted: false, id: uuidv4() },
-  //   { title: "", isCompleted: false, id: uuidv4() },
-  // ]);
-
-  //   if (type === "edit" && isFirstLoad) {
-  //     setSubtasks(
-  //       task.subtasks.map((subtask) => {
-  //         return { ...subtask, id: uuidv4() };
-  //       })
-  //     );
-  //     setTitle(task.title);
-  //     setDescription(task.description);
-  //     setIsFirstLoad(false);
-  //   }
-
-  //   const validate = () => {
-  //     setIsValid(false);
-  //     if (!title.trim()) {
-  //       return false;
-  //     }
-  //     for (let i = 0; i < subtasks.length; i++) {
-  //       if (!subtasks[i].title.trim()) {
-  //         return false;
-  //       }
-  //     }
-  //     setIsValid(true);
-  //     return true;
-  //   };
-
-  //   const onChangeSubtasks = (id, newValue) => {
-  //     setSubtasks((prevState) => {
-  //       const newState = [...prevState];
-  //       const subtask = newState.find((subtask) => subtask.id === id);
-  //       subtask.title = newValue;
-  //       return newState;
-  //     });
-  //   };
-
-  //   const onDelete = (id) => {
-  //     setSubtasks((prevState) => prevState.filter((el) => el.id !== id));
-  //   };
-
-  //   const onChangeStatus = (e) => {
-  //     setStatus(e.target.value);
-  //     setNewColIndex(e.target.selectedIndex);
-  //   };
-
-  //   const onSubmit = (type) => {
-  //     if (type === "add") {
-  //       dispatch(
-  //         boardsSlice.actions.addTask({
-  //           title,
-  //           description,
-  //           subtasks,
-  //           status,
-  //           newColIndex,
-  //         })
-  //       );
-  //     } else {
-  //       dispatch(
-  //         boardsSlice.actions.editTask({
-  //           title,
-  //           description,
-  //           subtasks,
-  //           status,
-  //           taskIndex,
-  //           prevColIndex,
-  //           newColIndex,
-  //         })
-  //       );
-  //     }
-  //   };
-
   const [levelBasedUser, setLevelBasedUser] = useState([]);
   const userDetail = JSON.parse(localStorage.getItem("userDetails"));
   const [selectedUsers, setSelectedUsers] = useState([]);
-  console.log(selectedUsers.length);
-  
-
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     task_name: "",
     task_desc: "",
-    priority: "",
+    priority: "Low",
     due_date: "",
     assigned_to: "",
     assigned_by: userDetail.id,
-    status_id: "",
+    status_id: 1,
     task_id: "",
   });
 
+  const toast = useRef(null);
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "due_date") {
       const localDate = new Date(value);
-      // Convert local date to ensure correct handling
       localDate.setMinutes(
         localDate.getMinutes() + localDate.getTimezoneOffset()
       );
@@ -141,9 +51,7 @@ export default function AddEditTaskModal({
     try {
       const response = await axios.get(
         `http://localhost:4000/api/getUserByLevel`,
-        {
-          params: { level },
-        }
+        { params: { level } }
       );
       setLevelBasedUser(response.data.results);
     } catch (err) {
@@ -160,28 +68,37 @@ export default function AddEditTaskModal({
   const { task_name, priority, due_date, status_id, assigned_by, task_desc } =
     formData;
 
-    const showSuccess = (message) => {
-      if (toast.current) {
-        toast.current.show({
-          severity: "success",
-          summary: "Success",
-          detail: message,
-          life: 3000,
-        });
-      }
-    };
-  
-    const showError = (message) => {
+  const user_ids = selectedUsers.map((user) => user.id);
+  // console.log(selectedUsers);
+
+  // const successNotify = () => toast.success("zfvb");
+  const showSuccess = () => {
+    toast.current.show({
+      severity: "success",
+      summary: "Success",
+      detail: "Message Content",
+      life: 3000,
+    });
+  };
+
+  const [taskAdded, setTaskAdded] = useState(false);
+
+  // Toast show effect
+  useEffect(() => {
+    if (taskAdded) {
+      console.log("have");
+      
       toast.current.show({
-        severity: "error",
-        summary: "Error",
-        detail: message,
+        severity: "success",
+        summary: "Success",
+        detail: "Task Created Successfully",
         life: 3000,
       });
-    };
-    
-    
-  const user_ids = selectedUsers.map((user) => user.id);
+      
+     
+      // Reset the flag after showing the toast
+    }
+  }, [taskAdded]);
 
   const addNewTask = async () => {
     try {
@@ -197,49 +114,45 @@ export default function AddEditTaskModal({
           selectedUsers: user_ids,
         }
       );
-      const serverMessage = response.data.message;
+
       if (response.status === 200) {
-        showSuccess(serverMessage);
-        setTimeout(() => {
-          refreshPage(); 
-        }, 3000);
+        console.log(response.data.message);
+        
       }
-      
+      setTaskAdded(true);
+      dispatch(setRefresh(true));
     } catch (err) {
       console.log({ "error pushing NewTask": err });
     }
   };
+  console.log(taskAdded);
 
-  const refreshPage = () => {
-    window.location.reload();
+  const handleSubmit = () => {
+    addNewTask();
   };
 
-
-  // Handle selection of options
-  const handleSelect = (selectedList, selectedItem) => {
+  const handleSelect = (selectedList) => {
     setSelectedUsers(selectedList);
   };
 
-  const handleRemove = (selectedList, removedItem) => {
+  const handleRemove = (selectedList) => {
     setSelectedUsers(selectedList);
   };
-  
-  const toast = useRef(null);
 
   return (
     <div
       className={`modal-container ${type === "add" ? "dimmed" : ""}`}
       onClick={(e) => {
-        if (e.target !== e.currentTarget) {
-          return;
-        }
+        if (e.target !== e.currentTarget) return;
         setIsAddTaskModalOpen(false);
       }}
     >
+      {/* <ToastContainer /> */}
       <Toast ref={toast} />
       <form
-        onSubmit={() => {
-          addNewTask();
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
           setIsAddTaskModalOpen(false);
         }}
         className="modal"
@@ -256,130 +169,76 @@ export default function AddEditTaskModal({
             type="text"
             required
             placeholder="e.g. Take coffee break"
-            // className={!isValid && !title.trim() ? "red-border" : ""}
           />
-          {/* {!isValid && !title.trim() && (
-            <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )}  */}
         </div>
 
-        <label htmlFor="task-name-input">Description</label>
+        <label htmlFor="task-desc-input">Description</label>
         <div className="description-container">
           <textarea
             value={formData.task_desc}
             onChange={handleChange}
             required
             name="task_desc"
-            id="task-description-input"
-            placeholder="e.g. It's always good to take a break. This 
-            15 minute break will  recharge the batteries 
-            a little."
+            id="task-desc-input"
+            placeholder="e.g. This 15-minute break will recharge your batteries."
           />
         </div>
-        <label htmlFor="task-name-input">Priority</label>
+
+        <label htmlFor="priority-input">Priority</label>
         <div className="input-container">
           <select
             value={formData.priority}
             onChange={handleChange}
             name="priority"
-            id="task-name-input"
+            id="priority-input"
           >
-            <option value="" disabled>
-              Select Priority
-            </option>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </select>
-
-          <label htmlFor="task-name-input">Due Date</label>
-          <div className="input-container">
-            <input
-              value={formData.due_date || ""} // Display formatted date or empty if not available
-              onChange={handleChange}
-              name="due_date"
-              id="task-name-input"
-              type="date"
-              required
-            />
-          </div>
-
-          <label htmlFor="assigned-to-input">Assigned To</label>
-          <Multiselect
-            required
-            options={levelBasedUser} // Options from levelBasedUser data
-            displayValue="email" // Display the user's email in the dropdown
-            onSelect={handleSelect} // Function when an item is selected
-            onRemove={handleRemove} // Function when an item is removed
-            selectedValues={selectedUsers} // Keep track of selected values
-            placeholder="Select users"
-            style={{
-              optionContainer: {
-                // border: '1px solid #635fc7',
-                fontSize: "12px",
-              },
-              chips: {
-                // backgroundColor: '#635fc7',
-                color: "white",
-                borderRadius: "4px",
-                padding: "5px",
-                margin: "2px",
-              },
-            }}
-          />
-          {/* <label htmlFor="task-name-input">Assigned By</label>
-          <div className="input-container">
-            <input
-              value={formData.assigned_by}
-              // onChange={(e) => setTitle(e.target.value)}
-              id="task-name-input"
-              type="text"
-              placeholder="e.g. Take coffee break"
-              // className={!isValid && !title.trim() ? "red-border" : ""}
-            />
-            {!isValid && !title.trim() && (
-            <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )} 
-          </div> */}
-
-          <label htmlFor="task-name-input">Status</label>
-          <div className="input-container">
-            <select
-              value={formData.status_id}
-              onChange={handleChange}
-              name="status_id"
-              id="task-name-input"
-              required
-            >
-              <option value="" disabled>
-                Select Status
-              </option>
-              <option value="1">To Do</option>
-              <option value="2">In Progress</option>
-              <option value="3">Done</option>
-            </select>
-          </div>
-          {/* {!isValid && !title.trim() && (
-         <span className="cant-be-empty-span text-L"> Can't be empty</span>
-          )} */}
         </div>
 
-        <button
-          type="submit"
-          // onClick={() => {
+        <label className="pt-5" htmlFor="due-date-input">
+          Due Date
+        </label>
+        <div className="input-container">
+          <input
+            value={formData.due_date || ""}
+            onChange={handleChange}
+            name="due_date"
+            id="due-date-input"
+            type="date"
+            required
+          />
+        </div>
 
-          // setIsAddTaskModalOpen(false)
-          //   const isValid = validate();
-          //   if (isValid) {
-          //     onSubmit(type);
-          // setIsAssignedEditOpen(false);
-          //     type === "edit" && setIsTaskModalOpen(false);
-          //   }
-          // HandleSubmit();
-          // }}
+        <label className="pt-5" htmlFor="assigned-to-input">
+          Assigned To
+        </label>
+        <Multiselect
+          required
+          options={levelBasedUser} // Options from levelBasedUser data
+          displayValue="email" // Display the user's email in the dropdown
+          onSelect={handleSelect} // Function when an item is selected
+          onRemove={handleRemove} // Function when an item is removed
+          selectedValues={selectedUsers} // Keep track of selected values
+          placeholder="Select users"
+          style={{
+            optionContainer: {
+              // border: '1px solid #635fc7',
+              fontSize: "12px",
+            },
+            chips: {
+              // backgroundColor: '#635fc7',
+              color: "white",
+              borderRadius: "4px",
+              padding: "5px",
+              margin: "2px",
+            },
+          }}
+        />
 
-          className="create-btn"
-        >
+        <button onClick={showSuccess} type="submit" className="create-btn">
           Create Task
         </button>
       </form>

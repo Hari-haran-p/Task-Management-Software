@@ -117,29 +117,28 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      <div className="mt-5 flex gap-2 mx-4">
-        <div className="card ">
-          <DataTable 
+      <div className="mt-5 flex flex-wrap justify-between mx-4 rounded-xl">
+        <div className="card md:w-1/2 w-full overflow-x-auto rounded-xl pr-3">
+          <DataTable className="rounded-lg"
             value={customers}
             paginator
             rows={5}
             rowsPerPageOptions={[5, 10, 25, 50]}
-            tableStyle={{ minWidth: "38rem" }}
-            
+            tableStyle={{ minWidth: "38rem"}}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            paginatorClassName="rounded-b-xl "
             currentPageReportTemplate="{first} to {last} of {totalRecords}"
-        
+           
            // paginatorLeft={paginatorLeft}
             paginatorRight={paginatorRight}
           >
-            <Column field="name" header="Name" style={{ width: "20%" }}>
-              {" "}
-              vabthet sdhhbdjknh{" "}
+            <Column field="name" header="Name" style={{ width: "20%",paddingLeft : "15px" }}>
+            
             </Column>
             <Column
               field="country.name"
               header="Country"
-              style={{ width: "20%" }}
+              style={{ width: "20%"}}
             ></Column>
             <Column
               field="company"
@@ -150,23 +149,26 @@ export default function Dashboard() {
               field="representative.name"
               header="Representative"
               style={{ width: "25%" }}
+              
             ></Column>
           </DataTable>
         </div>
-        <div className="card">
-          <DataTable
+        <div className="card md:w-1/2 w-full overflow-x-auto pl-3 rounded-xl">
+          <DataTable 
+          
             value={customers}
             paginator
             rows={5}
             rowsPerPageOptions={[5, 10, 25, 50]}
             tableStyle={{ minWidth: "38rem" }}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            paginatorClassName="rounded-b-xl"
             currentPageReportTemplate="{first} to {last} of {totalRecords}"
-            className="pl-3 rounded-xl shadow-lg"
+            className="rounded-xl "
            // paginatorLeft={paginatorLeft}
             paginatorRight={paginatorRight}
           >
-            <Column field="name" header="Name" style={{ width: "25%" }}>
+            <Column field="name" header="Name" style={{ width: "25%" ,paddingLeft : "15px"}}>
               {" "}
               vabthet sdhhbdjknh{" "}
             </Column>

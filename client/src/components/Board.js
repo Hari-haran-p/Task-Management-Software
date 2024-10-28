@@ -7,6 +7,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import AssignedTask from "./AssignedTask";
 import Dashboard from "./Dashboard";
+import { useSelector } from "react-redux";
 
 export default function Board() {
   const isBigScreen = useMediaQuery({ query: "(min-width: 768px)" });
@@ -16,7 +17,6 @@ export default function Board() {
 
   const location = useLocation();
   const currentPath = location.pathname;
-  // console.log(currentPath);
 
   const getTaskData = async () => {
     try {
@@ -53,13 +53,16 @@ export default function Board() {
       console.log("Error fetching task data", e);
     }
   };
-
   // console.log(assignedData);
+  const refresh = useSelector((state)=>state.refresh)
 
   useEffect(() => {
     getAssignedData();
+  }, [refresh]);
+
+  useEffect(() => {
     getTaskData();
-  }, []);
+  })
 
   // console.log({"jv":assignedData});
   
@@ -92,6 +95,7 @@ export default function Board() {
           <AssignedTask
             assignedData={assignedData}
             getAssignedData={getAssignedData}
+            getTaskData={getTaskData}
           />
         </div>
       )}
