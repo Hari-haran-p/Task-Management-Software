@@ -21,6 +21,8 @@ export default function Board() {
     try {
       const userDetails = JSON.parse(localStorage.getItem('userDetails'));
       const userEmail = userDetails ? userDetails.email : null; // Extract email
+      // console.log(userEmail);
+      
       if (!userEmail) {
         console.error("User Email is not available");
         return;
@@ -39,7 +41,7 @@ export default function Board() {
     try {
       const userDetails = JSON.parse(localStorage.getItem("userDetails"));
       const userId = userDetails ? userDetails.id : null;
-
+      
       if (!userId) {
         console.error("User id is not available");
         return;
@@ -61,9 +63,9 @@ export default function Board() {
 
   useEffect(() => {
     getTaskData();
-  })
+  },[refresh])
 
-  // console.log({"jv":assignedData});
+  console.log({"jv":taskData});
   
   return (
     <div
@@ -105,52 +107,4 @@ export default function Board() {
   );
 }
 
-// import React, { useState } from "react";
-// // import { useSelector } from "react-redux";
-// import { useMediaQuery } from "react-responsive";
-// // import AddEditBoardModal from "../modals/AddEditBoardModal";
-// import "../styles/Board.css";
-// import Column from "./Column";
-// // import EmptyBoard from "./EmptyBoard";
-// import Sidebar from "./Sidebar";
 
-// export default function Board() {
-//   const isBigScreen = useMediaQuery({ query: "(min-width: 768px)" });
-//   const [isSideBarOpen, setIsSideBarOpen] = useState(true);
-//   const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
-//   // const boards = useSelector((state) => state.boards);
-//   // const board = boards.find((board) => board.isActive === true);
-//   const columns = ['todo', 'doing', 'done'];
-
-//   return (
-//     <div
-//       className={isBigScreen && isSideBarOpen ? "board open-sidebar" : "board"}
-//     >
-//       {isBigScreen && (
-//         <Sidebar
-//           isSideBarOpen={isSideBarOpen}
-//           setIsSideBarOpen={setIsSideBarOpen}
-//         />
-//       )}
-
-//       {/* {columns.length > 0 ? ( */}
-//         {/* <> */}
-//           {columns.map((col, index) => {
-//             return <Column key={index} colIndex={index} />;
-//           })}
-//           <div
-//             className="add-column-column heading-XL"
-//             onClick={() => {
-//               setIsBoardModalOpen(true);
-//             }}
-//           >
-//             + New Column
-//           </div>
-//         {/* </> */}
-//       {/* ) : ( */}
-//         {/* <EmptyBoard type="edit" /> */}
-//       {/* )} */}
-//       {/* {isBoardModalOpen && <AddEditBoardModal type="edit" setIsBoardModalOpen={setIsBoardModalOpen} />} */}
-//     </div>
-//   );
-// }

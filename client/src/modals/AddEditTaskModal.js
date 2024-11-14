@@ -117,7 +117,6 @@ export default function AddEditTaskModal({
 
       if (response.status === 200) {
         console.log(response.data.message);
-        
       }
       setTaskAdded(true);
       dispatch(setRefresh(true));

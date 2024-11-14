@@ -38,7 +38,8 @@ app.get("/api/getTaskData", async (req, res) => {
   try {
     const results = await db.query(query, [userEmail]);
     if (results.length > 0) {
-      res.json({ results});
+      console.log(results);
+      res.json({ results });
     } else {
       res.json({ message: "No tasks found for this user" });
     }
@@ -65,8 +66,9 @@ app.get("/api/getAssignedData", async (req, res) => {
 app.post("/api/deleteTask", async (req, res) => {
   const taskId = req.body.taskId;
   const deleteTaskQuery = "DELETE FROM tasks WHERE id = ?";
-  const deleteTaskAssigneesQuery = "DELETE FROM task_assignee WHERE task_id = ?";
-  
+  const deleteTaskAssigneesQuery =
+    "DELETE FROM task_assignee WHERE task_id = ?";
+
   let connection;
 
   try {
@@ -114,6 +116,22 @@ app.post("/api/getAssignedUsers", async (req, res) => {
 
   try {
     const results = await db.query(query, [taskId]);
+    res.json(results);
+  } catch (err) {
+    console.error("Database query error:", err);
+    res.status(500).json({ message: "Database error", error: err });
+  }
+});
+
+app.post("/api/taskStatusChange", async (req, res) => {
+  const status = req.body.status;
+  const taskId = req.body.data.task_id;
+  console.log(status, taskId);
+
+  const query = "update tasks set column_id = ? where id = ?";
+
+  try {
+    const results = await db.query(query, [status, taskId]);
     res.json(results);
   } catch (err) {
     console.error("Database query error:", err);
@@ -228,7 +246,7 @@ app.post("/api/addNewTask", async (req, res) => {
 app.post("/api/updateTask", async (req, res) => {
   const {
     task_id,
-    task_name,
+    title,
     priority,
     due_date,
     status_id,
@@ -237,36 +255,30 @@ app.post("/api/updateTask", async (req, res) => {
     selectedUsers,
   } = req.body;
 
-  const userIds = selectedUsers;
-
-  console.log(
-    task_desc,
-    task_name,
-    task_id,
-    priority,
-    due_date,
-    status_id,
-    assigned_by
-  );
-  console.log(userIds);
-
-  if (!Array.isArray(userIds)) {
+  if (!Array.isArray(selectedUsers)) {
     return res.status(400).json({ message: "Invalid selectedUsers format" });
   }
 
-  const updateTaskQuery =
-    "UPDATE tasks SET title = ?, priority = ?, due_date = ?, column_id = ?, assigned_by = ?, task_desc = ? WHERE id = ?";
-  const deleteOldAssigneesQuery =
-    "DELETE FROM task_assignee WHERE task_id = ? AND user_id NOT IN (?)";
-  const insertNewAssigneesQuery =
-    "INSERT INTO task_assignee (task_id, user_id) VALUES ?"; // Using INSERT IGNORE
+  const updateTaskQuery = `
+    UPDATE tasks 
+    SET title = ?, priority = ?, due_date = ?, column_id = ?, assigned_by = ?, task_desc = ? 
+    WHERE id = ?
+  `;
+
+  const deleteOldAssigneesQuery = selectedUsers.length
+    ? `DELETE FROM task_assignee WHERE task_id = ? AND user_id NOT IN (${selectedUsers
+        .map(() => "?")
+        .join(",")})`
+    : `DELETE FROM task_assignee WHERE task_id = ?`; // Deletes all if no selectedUsers
+
+  const insertNewAssigneesQuery = `INSERT IGNORE INTO task_assignee (task_id, user_id) VALUES ?`;
 
   try {
     await db.query("START TRANSACTION");
 
     // Update the task details
     await db.query(updateTaskQuery, [
-      task_name,
+      title,
       priority,
       due_date,
       status_id,
@@ -276,33 +288,33 @@ app.post("/api/updateTask", async (req, res) => {
     ]);
 
     // Delete users who were removed from the task
-    await db.query(deleteOldAssigneesQuery, [task_id, userIds]);
+    if (selectedUsers.length) {
+      await db.query(deleteOldAssigneesQuery, [task_id, ...selectedUsers]);
+    } else {
+      await db.query(deleteOldAssigneesQuery, [task_id]);
+    }
 
     // Fetch existing users assigned to the task
-    const [existingUsers] = await db.query(
+    // Fetch existing users assigned to the task
+    const result = await db.query(
       "SELECT user_id FROM task_assignee WHERE task_id = ?",
       [task_id]
     );
-
-    console.log("Existing users:", existingUsers);
-
-    const existingUserIds = Array.isArray(existingUsers)
-      ? existingUsers.map((row) => row.user_id)
-      : [];
+    const existingUsers = Array.isArray(result[0]) ? result[0] : [];
+    const existingUserIds = existingUsers.map((row) => row.user_id);
 
     // Filter out users that are already assigned
-    const newUsers = userIds.filter(
+    const newUsers = selectedUsers.filter(
       (user_id) => !existingUserIds.includes(user_id)
     );
 
+    // Insert new users if there are any
     if (newUsers.length > 0) {
       const values = newUsers.map((user_id) => [task_id, user_id]);
-      // Use INSERT IGNORE to prevent duplicate entries
       await db.query(insertNewAssigneesQuery, [values]);
     }
 
     await db.query("COMMIT");
-
     res.json({ message: "Task updated successfully" });
   } catch (err) {
     await db.query("ROLLBACK");

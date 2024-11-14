@@ -6,22 +6,15 @@ import "primereact/resources/themes/saga-blue/theme.css"; // or any other theme
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css"; // for icons
 import logo from "../assets/card-task.png";
-import op from "../assets/option.svg";
 import dot from "../assets/dots.png";
 import axios from "axios";
 import { Toast } from "primereact/toast";
 import TaskView from "./TaskView";
 
 function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
-  // for edit popup
+
   const [openEdit, setOpenEdit] = useState(false);
   const [editData, setEditData] = useState(null);
-  // const [openOptions, setOpenOptions] = useState(false);
-  // const [openOptionsTaskId, setOpenOptionsTaskId] = useState(null);
-  // console.log({"ha":assignedData});
-
-  // console.log(assignedData);
-
   const handleOpenEdit = (data) => {
     setOpenEdit(true);
     setEditData(data);
@@ -214,6 +207,8 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
   };
 
   const [viewData,setViewData] = useState();
+  console.log({"viewData": viewData});
+  
 
   return (
     <div className="p-5">
@@ -241,13 +236,14 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
         </div>
       </div>
       <Toast ref={toast} />
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap justify-center items-center lg:justify-start lg:items-start gap-4">
         {/* The outer container uses flexbox to arrange items */}
         {filteredData.map((data, index) => (
             <div key={index} className="w-full max-w-sm  rounded-xl relative shadow-2xl">
               <div className="w-full h-14 bg-white flex items-center justify-between pl-4 pr-4 rounded-t-xl">
+                <div className="flex gap-4">
                 <div className="flex gap-3 rounded-xl items-center p-3 h-9 justify-center bg-card min-sm:w-24 sm:h-9">
-                  <img src={logo} alt="" className="w-3 h-3" />
+                  <img src={logo} alt="" className="w-3 h-3"/>
                   <div className="text-sm font-bold text-red-text">
                     {data.column_id === 1
                       ? "ToDo"
@@ -269,9 +265,10 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
                     </div>
                   </div>
                 </div>
+                </div>
                 <div>
                 <button
-                    data-dropdown-toggle="apple-imac-27-dropdown"
+                    // data-dropdown-toggle="apple-imac-27-dropdown"
                     onClick={(e) => {
                       handleActionClick(e, data.id);
                       getAssignedUsers(data.id);

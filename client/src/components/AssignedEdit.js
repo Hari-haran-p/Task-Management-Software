@@ -17,6 +17,8 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     id: "",
   });
 
+  
+
   const [levelBasedUser, setLevelBasedUser] = useState([]);
   const userDetail = JSON.parse(localStorage.getItem("userDetails"));
   
@@ -64,8 +66,8 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     setFormData({ ...formData, [name]: value });
   };
 
-  const { id, task_name, priority, due_date, status_id, assigned_by, task_desc } = formData;
-  // console.log(formData);
+  const { id, title, priority, due_date, column_id, assigned_by, task_desc } = formData;
+  // console.log(formData.title);
   
 
   const user_ids = assignedUsers.map((user) => user.user_id);
@@ -77,10 +79,10 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
       try {
         const response = await axios.post("http://localhost:4000/api/updateTask", {
           task_id: id,
-          task_name: task_name,
+          title: title,
           priority: priority,
           due_date: due_date,
-          status_id: status_id,
+          status_id: column_id,
           assigned_by: assigned_by,
           task_desc: task_desc,
           selectedUsers: user_ids,
@@ -95,15 +97,12 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     }
   };
   
-
-  // Handle selecting users in the dropdown
   const handleSelect = (selectedList) => {
-    setAssignedUsers(selectedList); // Update the assignedUsers state with selected users
+    setAssignedUsers(selectedList);
   };
 
-  // Handle removing users in the dropdown
   const handleRemove = (selectedList) => {
-    setAssignedUsers(selectedList); // Update the assignedUsers state when users are removed
+    setAssignedUsers(selectedList);
   };
 
 
@@ -111,7 +110,9 @@ function AssignedEdit({ data, setOpenEdit, assignedUsers, setAssignedUsers }) {
     (user, index, self) => index === self.findIndex((u) => u.id === user.id)
   );
 
-  console.log({"ass":assignedUsers});
+  // console.log({"ass":assignedUsers});
+  // console.log({"form":formData});
+  
   
 
   var type = "add"

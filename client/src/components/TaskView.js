@@ -1,25 +1,21 @@
 import React, { useState } from "react";
 import Multiselect from "multiselect-react-dropdown";
 
-function TaskView({
-  setIsAddTaskModalOpen,
-  assignedUsers,
-  viewData,
-}) {
-
+function TaskView({ setIsAddTaskModalOpen, assignedUsers, viewData }) {
   function formatDateToIST(date) {
     const localDate = new Date(date);
-    localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset() + 330); // Adding 330 minutes for IST
+    localDate.setMinutes(
+      localDate.getMinutes() + localDate.getTimezoneOffset() + 330
+    ); // Adding 330 minutes for IST
     const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, '0');
-    const day = String(localDate.getDate()).padStart(2, '0');
+    const month = String(localDate.getMonth() + 1).padStart(2, "0");
+    const day = String(localDate.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
-  
 
-  console.log(viewData);
-  
-  var type = "add"
+  // console.log(viewData);
+
+  var type = "add";
 
   return (
     <div
@@ -37,7 +33,7 @@ function TaskView({
         <label htmlFor="task-id-input">Task Id</label>
         <div className="input-container">
           <input
-            value={viewData.id}
+            value={viewData.id || viewData.task_id}
             id="task-id-input"
             type="text"
             name="id"
@@ -50,7 +46,7 @@ function TaskView({
         </label>
         <div className="input-container">
           <input
-            value={viewData.title}
+            value={viewData.title || viewData.task_name}
             id="task-name-input"
             name="title"
             type="text"
@@ -98,25 +94,30 @@ function TaskView({
           />
         </div>
 
-        <label className="pt-5" htmlFor="assigned-users-select">
-          Assigned To
-        </label>
-        <Multiselect
-          displayValue="email" // Display user's email in the dropdown
-          selectedValues={assignedUsers} // Pre-select assignedUsers as chips
-          disable
-          style={{
-            optionContainer: {
-              fontSize: "12px",
-            },
-            chips: {
-              color: "white",
-              borderRadius: "4px",
-              padding: "5px",
-              margin: "2px",
-            },
-          }}
-        />
+        {assignedUsers && (
+          <>
+            <label className="pt-5" htmlFor="assigned-users-select">
+              Assigned To
+            </label>
+
+            <Multiselect
+              displayValue="email" // Display user's email in the dropdown
+              selectedValues={assignedUsers} // Pre-select assignedUsers as chips
+              disable
+              style={{
+                optionContainer: {
+                  fontSize: "12px",
+                },
+                chips: {
+                  color: "white",
+                  borderRadius: "4px",
+                  padding: "5px",
+                  margin: "2px",
+                },
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

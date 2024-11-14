@@ -75,7 +75,7 @@ export default function Header() {
             <img src={addTaskMobile} alt="add task" />   
           )}
         </button>
-        <img
+        {/* <img
           onClick={() => {
             // setIsElipsisMenuOpen((prevState) => !prevState);
             // setBoardType("edit");
@@ -83,7 +83,7 @@ export default function Header() {
           className="elipsis"
           src={elipsis}
           alt="menu for deleting or editing board"
-        />
+        /> */}
 
         {openDropdown && !isBigScreen && (
           <HeaderDropdown
