@@ -6,6 +6,7 @@ import Board from './components/Board';
 import LoginPage from './components/LoginPage';
 import AssignedTask from './components/AssignedTask';
 import Demo from './components/Demo';
+import Dashboard from './components/Dashboard';
 import Card from './components/Card';
 
 
@@ -15,7 +16,8 @@ function App() {
       <Provider store={store}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LoginPage/>} /> 
+          <Route path="/" element={<LoginPage/>} />
+          <Route path="/dashboard" element = {<><Header/> <Board/> </>} />
           <Route path="/mytask" element={<><Header/> <Board/></> } /> 
           <Route path="/assigned" element={<><Header/><Board/></>} /> 
           <Route path="/demo" element={<><Demo/></>} /> 

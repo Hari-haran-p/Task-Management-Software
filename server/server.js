@@ -31,7 +31,7 @@ app.post("/api/login", async (req, res) => {
 
 app.get("/api/getTaskData", async (req, res) => {
   const userEmail = req.query.userEmail;
-  // console.log(userEmail);
+  console.log(userEmail);
 
   const query = "SELECT * FROM task_details_view WHERE assigned_to = ?";
 
