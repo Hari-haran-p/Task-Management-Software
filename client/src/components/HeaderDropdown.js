@@ -66,7 +66,7 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
         </div>
 
         {/* Theme Toggle */}
-        <div className="theme-toggle">
+        {/* <div className="theme-toggle">
           <img src={lightIcon} alt="sun indicating light mode" />
           <label className="switch">
             <input
@@ -77,7 +77,7 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
             <span className="slider round"></span>
           </label>
           <img src={darkIcon} alt="moon indicating dark mode" />
-        </div>
+        </div> */}
       </div>
     </div>
   );

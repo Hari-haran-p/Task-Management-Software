@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import { setRefresh } from "../redux/refreshSlice";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
+import { Calendar } from "primereact/calendar";
 // import { ToastContainer, toast } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
 
@@ -33,19 +34,26 @@ export default function AddEditTaskModal({
     task_id: "",
   });
 
+  const today = new Date();
+
   const toast = useRef(null);
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
     if (name === "due_date") {
-      const localDate = new Date(value);
-      localDate.setMinutes(
-        localDate.getMinutes() + localDate.getTimezoneOffset()
-      );
-      setFormData({ ...formData, [name]: value });
+      // Parse the date from the input value (it may come as a string)
+      const selectedDate = new Date(value);
+      
+      // Adjust the date by setting it to the local timezone (avoid timezone shift)
+      const localDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000);
+  
+      // Update the state with the corrected local date
+      setFormData({ ...formData, [name]: localDate });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
+  
 
   const getUserByLevel = async (level) => {
     try {
@@ -59,10 +67,27 @@ export default function AddEditTaskModal({
     }
   };
 
+  const triggerWorkflow = async () => {
+    const name = "Hari";
+    const email = "hariharan33587@gmail.com";
+    try {
+      const response = await axios.post(
+        `http://localhost:4000/api/triggerWorkflow`,
+        { name , email}
+      );
+      setLevelBasedUser(response.data.results);
+      console.log(response.data.message);
+      
+    } catch (err) {
+      console.log({ "error triggerWorkflow": err });
+    }
+  };
+
   useEffect(() => {
     if (userDetail && userDetail.level !== undefined) {
       getUserByLevel(userDetail.level);
     }
+    triggerWorkflow();
   }, []);
 
   const { task_name, priority, due_date, status_id, assigned_by, task_desc } =
@@ -87,15 +112,14 @@ export default function AddEditTaskModal({
   useEffect(() => {
     if (taskAdded) {
       console.log("have");
-      
+
       toast.current.show({
         severity: "success",
         summary: "Success",
         detail: "Task Created Successfully",
         life: 3000,
       });
-      
-     
+
       // Reset the flag after showing the toast
     }
   }, [taskAdded]);
@@ -117,6 +141,7 @@ export default function AddEditTaskModal({
 
       if (response.status === 200) {
         console.log(response.data.message);
+        triggerWorkflow();
       }
       setTaskAdded(true);
       dispatch(setRefresh(true));
@@ -201,13 +226,15 @@ export default function AddEditTaskModal({
           Due Date
         </label>
         <div className="input-container">
-          <input
+          <Calendar
+            className="w-full"
             value={formData.due_date || ""}
-            onChange={handleChange}
             name="due_date"
+            onChange={handleChange}
+            dateFormat="dd-mm-yy"
+            minDate={today} // Disable past dates
+            placeholder="Select a date"
             id="due-date-input"
-            type="date"
-            required
           />
         </div>
 

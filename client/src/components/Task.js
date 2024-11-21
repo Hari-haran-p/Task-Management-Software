@@ -19,9 +19,10 @@ export default function Task({ data, onDragStart }) {
   };
 
   const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setDropdownVisible(null);
-    }
+    // if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    //   setDropdownVisible(null);
+    // }
+    setDropdownVisible(null);
   };
 
   useEffect(() => {
@@ -64,6 +65,8 @@ export default function Task({ data, onDragStart }) {
       </div>
     );
   }
+
+  
 
   return (
     <div className="flex flex-wrap justify-center items-center lg:justify-start lg:items-start mb-10">
@@ -141,6 +144,7 @@ export default function Task({ data, onDragStart }) {
                         className="block py-1 px-4 cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                         onClick={() => {
                           handleStatusChange(1, data);
+                          handleClickOutside();
                         }}
                       >
                         To Do
@@ -151,6 +155,7 @@ export default function Task({ data, onDragStart }) {
                         className="block py-1 cursor-pointer px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                         onClick={() => {
                           handleStatusChange(2, data);
+                          dropdownVisible(false);
                         }}
                       >
                         In Progress
@@ -161,6 +166,7 @@ export default function Task({ data, onDragStart }) {
                         className="block py-1 px-4 cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                         onClick={() => {
                           handleStatusChange(3, data);
+                          dropdownVisible(false);
                         }}
                       >
                         Done
@@ -186,9 +192,22 @@ export default function Task({ data, onDragStart }) {
         >
           <div className="text-sm">{data.task_desc}</div>
         </div>
-        <div className="w-full flex items-center  h-12 rounded-b-xl border-t-2 border-gray-300 pl-5 ">
-          <div className="text-sm font-bold ">
-            {formatDateToIST(data.due_date)}
+
+        <div className="w-full flex items-center h-12 rounded-b-xl border-t-2 border-gray-300 pl-5 ">
+          <div className="flex justify-center gap-3 items-center">
+            <div className="text-sm font-bold ">
+              {formatDateToIST(data.due_date)}
+            </div>
+            {/* <div className="flex gap-1 bg-red-100 rounded-xl items-center w-28 h-9 justify-center bg-card_1"> */}
+              {/* <img
+                src={dot}
+                alt=""
+                className="h-3 w-3  rounded-2xl"
+              /> */}
+              <div className="text-sm font-bold text-red-500">
+                {data.over_due === "Yes" ? "OverDue" : ""}
+              </div>
+            {/* </div> */}
           </div>
         </div>
       </div>

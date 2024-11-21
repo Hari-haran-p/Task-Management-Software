@@ -2,13 +2,44 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
-
+const { serve } = require("@novu/framework/express");
+const { workflow } = require("@novu/framework");
 const db = require("./Database/db.js");
 
+// Initialize express app
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json()); // Required for Novu POST requests
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
@@ -29,16 +60,39 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+app.post("/api/updateOverdue", async (req, res) => {
+  // const currentDate = new Date();
+  // const currentDateOnly = new Date(
+  //   currentDate.getFullYear(),
+  //   currentDate.getMonth(),
+  //   currentDate.getDate()
+  // );
+
+  try {
+    const query = `
+      UPDATE tasks
+      SET over_due = 'Yes'
+      WHERE DATE(due_date) < CURDATE()
+      AND over_due = 'No'
+      AND column_id != 3;
+    `;
+    await db.query(query);
+    res.status(200).json({ message: "Overdue tasks updated successfully" });
+  } catch (error) {
+    console.error("Error updating overdue tasks:", error);
+    res.status(500).json({ message: "Failed to update overdue tasks" });
+  }
+});
+
 app.get("/api/getTaskData", async (req, res) => {
   const userEmail = req.query.userEmail;
-  console.log(userEmail);
+  // console.log(userEmail);
 
   const query = "SELECT * FROM task_details_view WHERE assigned_to = ?";
 
   try {
     const results = await db.query(query, [userEmail]);
     if (results.length > 0) {
-      console.log(results);
       res.json({ results });
     } else {
       res.json({ message: "No tasks found for this user" });
@@ -83,7 +137,7 @@ app.post("/api/deleteTask", async (req, res) => {
         resolve(result);
       });
     });
-    console.log("Deleted task assignees:", deleteAssigneesResult.affectedRows);
+    // console.log("Deleted task assignees:", deleteAssigneesResult.affectedRows);
 
     // Delete the task itself
     const deleteTaskResult = await new Promise((resolve, reject) => {
@@ -126,7 +180,7 @@ app.post("/api/getAssignedUsers", async (req, res) => {
 app.post("/api/taskStatusChange", async (req, res) => {
   const status = req.body.status;
   const taskId = req.body.data.task_id;
-  console.log(status, taskId);
+  // console.log(status, taskId);
 
   const query = "update tasks set column_id = ? where id = ?";
 

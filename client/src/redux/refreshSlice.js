@@ -8,7 +8,7 @@ const refreshSlice = createSlice({
   initialState,
   reducers: {
     setRefresh: (state , action) => {
-        return action.payload;
+        return (!state);
     },
   },
 });
