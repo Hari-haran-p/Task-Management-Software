@@ -2,55 +2,31 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
-const { serve } = require("@novu/framework/express");
-const { workflow } = require("@novu/framework");
+// const { serve } = require("@novu/framework/express");
+// const { workflow } = require("@novu/framework");
 const db = require("./Database/db.js");
-
+// const notification = require("./notification.js");
+// const getEmailAddress = require("./notification.js");
 // Initialize express app
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(
+  bodyParser.json({
+    type: ["application/json", "text/plain"],
+  })
+);
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json()); // Required for Novu POST requests
+app.use(express.json());
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.post("/api/login", async (req, res) => {
+app.post("/api/login", async (req , res) => {
   const { email, password } = req.body;
-  // console.log(email);
 
   const query = "SELECT * FROM users WHERE email = ? AND password = ?";
   try {
     const results = await db.query(query, [email, password]); // Assuming db.query is asynchronous and returns a promise
     if (results.length > 0) {
       const user = results[0];
-
+      // getEmailAddress(user.email);
       res.json({ id: user.id, email: user.email, level: user.level });
     } else {
       res.status(401).json({ message: "Invalid credentials" });
@@ -61,12 +37,6 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.post("/api/updateOverdue", async (req, res) => {
-  // const currentDate = new Date();
-  // const currentDateOnly = new Date(
-  //   currentDate.getFullYear(),
-  //   currentDate.getMonth(),
-  //   currentDate.getDate()
-  // );
 
   try {
     const query = `
@@ -103,7 +73,7 @@ app.get("/api/getTaskData", async (req, res) => {
   }
 });
 
-app.get("/api/getAssignedData", async (req, res) => {
+app.get("/api/getAssigndData", async (req, res) => {
   const userId = req.query.userId;
 
   const query = "SELECT * FROM tasks WHERE assigned_by = ?";

@@ -69,7 +69,7 @@ export default function AddEditTaskModal({
 
   const triggerWorkflow = async () => {
     const name = "Hari";
-    const email = "hariharan33587@gmail.com";
+    const email = "harichris28@gmail.com";
     try {
       const response = await axios.post(
         `http://localhost:4000/api/triggerWorkflow`,
