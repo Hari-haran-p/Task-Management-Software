@@ -18,7 +18,7 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.post("/api/login", async (req , res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
   const query = "SELECT * FROM users WHERE email = ? AND password = ?";
@@ -37,7 +37,6 @@ app.post("/api/login", async (req , res) => {
 });
 
 app.post("/api/updateOverdue", async (req, res) => {
-
   try {
     const query = `
       UPDATE tasks
@@ -73,9 +72,9 @@ app.get("/api/getTaskData", async (req, res) => {
   }
 });
 
-app.get("/api/getAssigndData", async (req, res) => {
-  const userId = req.query.userId;
+app.get("/api/getAssignedData", async (req, res) => {
 
+  const userId = req.query.userId;
   const query = "SELECT * FROM tasks WHERE assigned_by = ?";
 
   try {
@@ -198,8 +197,12 @@ app.post("/api/addNewTask", async (req, res) => {
       selectedUsers,
     } = req.body;
 
+    console.log({ date: due_date });
+    const dateOnly = new Date(due_date).toISOString().split("T")[0];
+    console.log(dateOnly); // Output: 2024-12-18
+
     // console.log("Starting transaction...");
-    // console.log("Task Details:", { task_name, priority, due_date, status_id, assigned_by, task_desc });
+    // console.log("Task Details:", { task_name, priority, due_date1, status_id, assigned_by, task_desc });
     // console.log("Selected Users:", selectedUsers); // Log for debugging
 
     const taskQuery =
@@ -211,7 +214,7 @@ app.post("/api/addNewTask", async (req, res) => {
     const taskResult = await new Promise((resolve, reject) => {
       connection.query(
         taskQuery,
-        [task_name, priority, due_date, status_id, assigned_by, task_desc],
+        [task_name, priority, dateOnly , status_id, assigned_by, task_desc],
         (error, result) => {
           if (error) return reject(error);
           resolve(result);
@@ -345,6 +348,11 @@ app.post("/api/updateTask", async (req, res) => {
     console.error("Database error:", err);
     res.status(500).json({ message: "Database error", error: err });
   }
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello from backend");
+  // res.json({ message: 'Hello from backend' });
 });
 
 app.listen(4000, () => {
