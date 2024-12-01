@@ -1,0 +1,40 @@
+version: '3'
+services:
+  # Client
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"  # Exposing client port 3000
+    networks:
+      - task_management_network  # Connecting client to the custom network
+  
+  # Server
+  server:
+    build: ./server
+    ports:
+      - "4000:4000"  # Exposing server port 4000
+    networks:
+      - task_management_network  # Connecting server to the custom network
+  
+  db:
+    container_name: db
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password  # Root password
+      MYSQL_DATABASE: tasks          # Default database
+      MYSQL_USER: myuser             # Non-root user (optional)
+      MYSQL_PASSWORD: myuserpassword # Password for the non-root user
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - task_management_network  # Connecting db to the custom network
+
+volumes:
+  db_data:
+
+networks:
+  task_management_network:
+    driver: bridge  # Use the bridge network driver
