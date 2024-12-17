@@ -31,6 +31,20 @@ export default function Column({ taskData }) {
     }
   }
 
+  // Priority mapping for sorting
+  const priorityOrder = {
+    High: 1,
+    Medium: 2,
+    Low: 3,
+  };
+
+  // Sort tasks within each column by priority
+  Object.keys(columns).forEach((columnName) => {
+    columns[columnName].sort(
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+    );
+  });
+
   return (
     <div className="column " onDrop={handleOnDrop} onDragOver={handleOnDragOver}>
       {Object.keys(columns).map((columnName) => (

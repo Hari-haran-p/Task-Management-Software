@@ -5,6 +5,7 @@ require("dotenv").config();
 // const { serve } = require("@novu/framework/express");
 // const { workflow } = require("@novu/framework");
 const db = require("./Database/db.js");
+const cron = require("node-cron");
 // const notification = require("./notification.js");
 // const getEmailAddress = require("./notification.js");
 // Initialize express app
@@ -18,6 +19,39 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "hariharan33587@gmail.com", // Your Gmail address
+    pass: process.env.MAIL_PASS, // Your Gmail password or App Password
+  },
+});
+
+// var mailOptions = {
+//   from: "hariharan33587@gmail.com",
+//   to: "",
+//   subject: "Test Email",
+//   text: "Hello, this is a test email sent using Gmail SMTP and Node.js.",
+// };
+
+const sendMail = (to, subject, text) => {
+  var mailOptions = {
+    from: "hariharan33587@gmail.com",
+    to: to,
+    subject: subject,
+    text: text,
+  };
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("Error sending email:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  });
+};
+
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -26,7 +60,8 @@ app.post("/api/login", async (req, res) => {
     const results = await db.query(query, [email, password]); // Assuming db.query is asynchronous and returns a promise
     if (results.length > 0) {
       const user = results[0];
-      // getEmailAddress(user.email);
+      // mailOptions.to = user.email;
+      // sendMail(user.email,"Login","congrats");
       res.json({ id: user.id, email: user.email, level: user.level });
     } else {
       res.status(401).json({ message: "Invalid credentials" });
@@ -36,20 +71,75 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-app.post("/api/updateOverdue", async (req, res) => {
+// const over_due = async function (req, res) {
+//   try {
+//     const query = `
+//       UPDATE tasks
+//       SET over_due = 'Yes'
+//       WHERE DATE(due_date) < CURDATE()
+//       AND over_due = 'No'
+//       AND column_id != 3;
+//     `;
+//     await db.query(query);
+//     console.log("updated successfully");
+
+//     // res.status(200).json({ message: "Overdue tasks updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating overdue tasks:", error);
+//     // res.status(500).json({ message: "Failed to update overdue tasks" });
+//   }
+// }
+
+cron.schedule("0 0 * * *", async function () {
   try {
-    const query = `
+    // Update overdue tasks and fetch newly updated rows
+    const fetchNewOverdueQuery = `
       UPDATE tasks
       SET over_due = 'Yes'
       WHERE DATE(due_date) < CURDATE()
       AND over_due = 'No'
       AND column_id != 3;
     `;
-    await db.query(query);
-    res.status(200).json({ message: "Overdue tasks updated successfully" });
+
+    // First, update the tasks
+    db.query(fetchNewOverdueQuery, async (error, result) => {
+      if (error) {
+        console.error("Error updating overdue tasks:", error);
+        return;
+      }
+      console.log("Overdue tasks updated successfully");
+
+      // If no rows were affected, exit
+      if (result.affectedRows === 0) {
+        console.log("No new overdue tasks to update.");
+        return;
+      }
+
+      // Now fetch only the updated rows
+      const getNewOverdueTasksQuery = `
+          SELECT task_name, due_date, assigned_to , task_desc
+          FROM task_details_view
+          WHERE over_due = 'Yes'
+          AND DATE(due_date) < CURDATE()
+          AND DATE(updated_at) = CURDATE();
+      `;
+
+      db.query(getNewOverdueTasksQuery, (error, results) => {
+        if (error) {
+          console.error("Error fetching new overdue tasks:", error);
+          return;
+        }
+
+        // Send emails to only newly overdue tasks
+        results.forEach((task) => {
+          const subject = `Task Overdue Notification: ${task.task_name}`;
+          const text = `Your task "${task.task_name}" is now overdue as the deadline (${task.due_date}) has passed. Please take the necessary actions.`;
+          sendMail(task.assigned_to, subject, text);
+        });
+      });
+    });
   } catch (error) {
-    console.error("Error updating overdue tasks:", error);
-    res.status(500).json({ message: "Failed to update overdue tasks" });
+    console.error("Error in cron job:", error);
   }
 });
 
@@ -73,7 +163,6 @@ app.get("/api/getTaskData", async (req, res) => {
 });
 
 app.get("/api/getAssignedData", async (req, res) => {
-
   const userId = req.query.userId;
   const query = "SELECT * FROM tasks WHERE assigned_by = ?";
 
@@ -214,7 +303,7 @@ app.post("/api/addNewTask", async (req, res) => {
     const taskResult = await new Promise((resolve, reject) => {
       connection.query(
         taskQuery,
-        [task_name, priority, dateOnly , status_id, assigned_by, task_desc],
+        [task_name, priority, dateOnly, status_id, assigned_by, task_desc],
         (error, result) => {
           if (error) return reject(error);
           resolve(result);
@@ -247,10 +336,37 @@ app.post("/api/addNewTask", async (req, res) => {
       console.warn("No users were selected for this task");
     }
 
-    // Commit transaction if everything succeeded
     await connection.commit();
-    // console.log("Transaction committed successfully");
 
+    const fetchUserEmails = async () => {
+      try {
+        const userEmails = await new Promise((resolve, reject) => {
+          connection.query(
+            "SELECT email FROM users WHERE id IN (?)",
+            [selectedUsers],
+            (error, results) => {
+              if (error) return reject(error);
+
+              if (results.length > 0) {
+                const emails = results.map((row) => row.email);
+                resolve(emails);
+              } else {
+                reject("No users found with the provided IDs");
+              }
+            }
+          );
+        });
+
+        sendMail(
+          userEmails,
+          "Task Added: " + task_name,
+          "Description: " + task_desc
+        );
+      } catch (error) {
+        console.error("Error fetching user emails or sending email:", error);
+      }
+    };
+    fetchUserEmails();
     // Send success response
     res.json({
       message: "Task Added Successfully",
