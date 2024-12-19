@@ -30,7 +30,7 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
           
           {/* My Task nav item */}
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/mytask") ? "board-active" : ""}`}  // Apply active class conditionally
+            className={`dropdown-board dropdown-create-board-btn ${isActive("/mytask") ? "board-active" : ""}`} 
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -42,7 +42,7 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
 
           {/* Dashboard nav item */}
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/dashboard") ? "board-active" : ""}`} // Check if Dashboard route is active
+            className={`dropdown-board dropdown-create-board-btn ${isActive("/dashboard") ? "board-active" : ""}`}
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -54,7 +54,7 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
 
           {/* Assigned Task nav item */}
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/assigned") ? "board-active" : ""}`} // Check if Assigned Task route is active
+            className={`dropdown-board dropdown-create-board-btn ${isActive("/assigned") ? "board-active" : ""}`} 
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -63,6 +63,18 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
             <img className="filter-purple" alt="board" src={boardIcon} />
             <Link to="/assigned">Assigned Task</Link>
           </div>
+
+          <div
+            className={`dropdown-board dropdown-create-board-btn ${isActive("/chat") ? "board-active" : ""}`} 
+            onClick={() => {
+              setIsBoardModalOpen(true);
+              setOpenDropdown && setOpenDropdown((state) => !state);
+            }}
+          >
+            <img className="filter-purple" alt="board" src={boardIcon} />
+            <Link to="/chat">Chat</Link>
+          </div>
+
         </div>
 
         {/* Theme Toggle */}

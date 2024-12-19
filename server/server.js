@@ -2,14 +2,99 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
-// const { serve } = require("@novu/framework/express");
-// const { workflow } = require("@novu/framework");
 const db = require("./Database/db.js");
 const cron = require("node-cron");
-// const notification = require("./notification.js");
-// const getEmailAddress = require("./notification.js");
-// Initialize express app
 const app = express();
+
+const http = require("http");
+const { Server } = require("socket.io");
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+const addMessage = async (data) => {
+  const { message, userEmail, userName } = data;
+  const query = `INSERT INTO messages (message, email, name) VALUES (?, ?, ?)`;
+  try {
+    const response = await db.query(query, [message, userEmail, userName]);
+    if (response.affectedRows > 0) {
+      console.log("Message inserted successfully");
+    } else {
+      console.log("Failed to insert message");
+    }
+  } catch (error) {
+    console.log({ "error inserting message": error });
+  }
+};
+
+
+const fetchMessages = async () => {
+  const query = `SELECT * FROM messages`;
+  try {
+    const response = await db.query(query);
+    if (response.length > 0) {
+      console.log("Messages fetched successfully");
+      return response; // Return all messages
+    } else {
+      console.log("No messages found");
+      return [];
+    }
+  } catch (error) {
+    console.log({ "error fetching messages": error });
+    return [];
+  }
+};
+
+
+// fetchMessages();
+
+const deleteMessage = async (messageId) => {
+  const query = `DELETE FROM messages WHERE id = ?`;
+  try {
+    const response = await db.query(query, [messageId]);
+    if (response.affectedRows > 0) {
+      console.log("Message deleted successfully");
+    } else {
+      console.log("Failed to delete message");
+    }
+  } catch (error) {
+    console.log({ "error deleting message": error });
+  }
+};
+
+io.on("connection", async (socket) => {
+  console.log("A user connected");
+
+  // Fetch initial messages and send to the client
+  const initialMessages = await fetchMessages();
+  socket.emit("initMessage", initialMessages);
+
+  // Handle incoming messages
+  socket.on("sendMessage", async (data) => {
+    console.log("Message received:", data);
+    await addMessage(data); // Insert message into DB
+    const updatedMessages = await fetchMessages(); // Fetch all messages
+    io.emit("broadcastMessage", updatedMessages); // Broadcast to all clients
+  });
+
+  // Handle message deletion
+  socket.on("deleteMessage", async (messageId) => {
+    console.log("Message to delete:", messageId);
+    await deleteMessage(messageId); // Delete the message from DB
+    const updatedMessages = await fetchMessages(); // Fetch updated messages
+    io.emit("broadcastMessage", updatedMessages); // Broadcast to all clients
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
+
+
 app.use(cors());
 app.use(
   bodyParser.json({
@@ -62,7 +147,12 @@ app.post("/api/login", async (req, res) => {
       const user = results[0];
       // mailOptions.to = user.email;
       // sendMail(user.email,"Login","congrats");
-      res.json({ id: user.id, email: user.email, level: user.level });
+      res.json({
+        id: user.id,
+        email: user.email,
+        level: user.level,
+        name: user.name,
+      });
     } else {
       res.status(401).json({ message: "Invalid credentials" });
     }
@@ -466,11 +556,15 @@ app.post("/api/updateTask", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello from backend");
-  // res.json({ message: 'Hello from backend' });
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello from backend");
+//   // res.json({ message: 'Hello from backend' });
+// });
 
-app.listen(4000, () => {
+// app.get("/messages", (req, res) => {
+//   res.json([]); // Mock message data
+// });
+
+server.listen(4000, () => {
   console.log(`Server running at 4000`);
 });

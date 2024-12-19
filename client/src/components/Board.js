@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import AssignedTask from "./AssignedTask";
 import Dashboard from "./Dashboard";
 import { useSelector } from "react-redux";
+import Chat from "./Chat";
 
 export default function Board() {
   const isBigScreen = useMediaQuery({ query: "(min-width: 768px)" });
@@ -99,6 +100,11 @@ export default function Board() {
             getAssignedData={getAssignedData}
             getTaskData={getTaskData}
           />
+        </div>
+      )}
+      {currentPath === "/chat" && (
+        <div className="w-full">
+          <Chat/>
         </div>
       )}
 

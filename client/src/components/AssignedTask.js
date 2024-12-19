@@ -211,7 +211,7 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
   
 
   return (
-    <div className="p-5">
+    <div className="p-5 relative">
       <div className="flex flex-wrap justify-center md:justify-between items-center mb-5">
         <div className="text-2xl font-semibold">Assigned Tasks</div>
         <div className="relative w-80">
@@ -374,6 +374,7 @@ function AssignedTask({ assignedData, getAssignedData ,getTaskData }) {
           />
         </div>
       )}
+
     </div>
   );
 }

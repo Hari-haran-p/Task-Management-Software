@@ -8,6 +8,7 @@ import AssignedTask from './components/AssignedTask';
 import Demo from './components/Demo';
 import Dashboard from './components/Dashboard';
 import Card from './components/Card';
+import Chat from './components/Chat';
 
 
 function App() {
@@ -17,10 +18,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginPage/>} />
-          <Route path="/dashboard" element = {<><Header/> <Board/> </>} />
-          <Route path="/mytask" element={<><Header/> <Board/></> } /> 
-          <Route path="/assigned" element={<><Header/><Board/></>} /> 
-          <Route path="/demo" element={<><Demo/></>} /> 
+          <Route path="/dashboard" element = {<><Header/> <Board/>  </>} />
+          <Route path="/mytask" element={<><Header/> <Board/> </> } /> 
+          <Route path="/assigned" element={<><Header/><Board/> </>} /> 
+          <Route path="/chat" element={<><Header/><Board/></>} /> 
           <Route path="/card" element={<><Card/></>} /> 
         </Routes>
       </BrowserRouter>

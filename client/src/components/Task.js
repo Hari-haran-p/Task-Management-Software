@@ -66,8 +66,6 @@ export default function Task({ data, onDragStart }) {
     );
   }
 
-  
-
   return (
     <div className="flex flex-wrap justify-center items-center lg:justify-start lg:items-start mb-10">
       <div className="w-full max-w-sm  rounded-xl relative shadow-xl">
@@ -199,14 +197,14 @@ export default function Task({ data, onDragStart }) {
               {formatDateToIST(data.due_date)}
             </div>
             {/* <div className="flex gap-1 bg-red-100 rounded-xl items-center w-28 h-9 justify-center bg-card_1"> */}
-              {/* <img
+            {/* <img
                 src={dot}
                 alt=""
                 className="h-3 w-3  rounded-2xl"
               /> */}
-              <div className="text-sm font-bold text-red-500">
-                {data.over_due === "Yes" ? "OverDue" : ""}
-              </div>
+            <div className="text-sm font-bold text-red-500">
+              {data.over_due === "Yes" ? "OverDue" : ""}
+            </div>
             {/* </div> */}
           </div>
         </div>
