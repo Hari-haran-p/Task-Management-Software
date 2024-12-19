@@ -37,7 +37,7 @@ const fetchMessages = async () => {
   try {
     const response = await db.query(query);
     if (response.length > 0) {
-      console.log("Messages fetched successfully");
+      // console.log("Messages fetched successfully");
       return response; // Return all messages
     } else {
       console.log("No messages found");
@@ -105,6 +105,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
 const nodemailer = require("nodemailer");
+const { log } = require("console");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -555,6 +556,26 @@ app.post("/api/updateTask", async (req, res) => {
     res.status(500).json({ message: "Database error", error: err });
   }
 });
+
+
+app.post("/api/adduser", (req, res) => {
+  const { email, password, name, level } = req.body;
+
+  if (!email || !password || !name || !level) {
+    return res.status(400).json({ error: "All fields are required!" });
+  }
+
+  const query = "INSERT INTO users (email, password, name, level) VALUES (?, ?, ?, ?)";
+  db.query(query, [email, password, name, level], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Failed to add user" });
+    }
+    console.log("User added successfully:", result);
+    res.status(201).json({ message: "User added successfully!" }); // Verify this is sent
+  });
+});
+
 
 // app.get("/", (req, res) => {
 //   res.send("Hello from backend");

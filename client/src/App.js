@@ -22,6 +22,8 @@ function App() {
           <Route path="/mytask" element={<><Header/> <Board/> </> } /> 
           <Route path="/assigned" element={<><Header/><Board/> </>} /> 
           <Route path="/chat" element={<><Header/><Board/></>} /> 
+          <Route path="/adduser" element={<><Header/><Board/></>} /> 
+
           <Route path="/card" element={<><Card/></>} /> 
         </Routes>
       </BrowserRouter>

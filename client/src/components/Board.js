@@ -9,6 +9,7 @@ import AssignedTask from "./AssignedTask";
 import Dashboard from "./Dashboard";
 import { useSelector } from "react-redux";
 import Chat from "./Chat";
+import AdminPage from "./AdminPage";
 
 export default function Board() {
   const isBigScreen = useMediaQuery({ query: "(min-width: 768px)" });
@@ -21,17 +22,18 @@ export default function Board() {
 
   const getTaskData = async () => {
     try {
-      const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+      const userDetails = JSON.parse(localStorage.getItem("userDetails"));
       const userEmail = userDetails ? userDetails.email : null; // Extract email
       // console.log(userEmail);
-      
+
       if (!userEmail) {
         console.error("User Email is not available");
         return;
       }
-      const response = await axios.get(`http://localhost:4000/api/getTaskData?userEmail=${userEmail}`);
+      const response = await axios.get(
+        `http://localhost:4000/api/getTaskData?userEmail=${userEmail}`
+      );
       setTaskData(response.data.results);
-
     } catch (e) {
       console.log("Error fetching task data", e);
     }
@@ -43,7 +45,7 @@ export default function Board() {
     try {
       const userDetails = JSON.parse(localStorage.getItem("userDetails"));
       const userId = userDetails ? userDetails.id : null;
-      
+
       if (!userId) {
         console.error("User id is not available");
         return;
@@ -57,7 +59,7 @@ export default function Board() {
     }
   };
   // console.log(assignedData);
-  const refresh = useSelector((state)=>state.refresh)
+  const refresh = useSelector((state) => state.refresh);
 
   useEffect(() => {
     getAssignedData();
@@ -65,10 +67,10 @@ export default function Board() {
 
   useEffect(() => {
     getTaskData();
-  },[refresh])
+  }, [refresh]);
 
-  console.log({"jv":taskData});
-  
+  console.log({ jv: taskData });
+
   return (
     <div
       className={isBigScreen && isSideBarOpen ? "board open-sidebar" : "board"}
@@ -80,19 +82,17 @@ export default function Board() {
         />
       )}
 
-      {currentPath === "/dashboard" &&  (
+      {currentPath === "/dashboard" && (
         <div className="w-full">
           <Dashboard
-            // assignedData={assignedData}
-            // getAssignedData={getAssignedData}
+          // assignedData={assignedData}
+          // getAssignedData={getAssignedData}
           />
         </div>
       )}
       {/* {taskData.map((task, index) => { */}
       {/* return  */}
-      {currentPath === '/mytask' && taskData && (
-        <Column taskData={taskData} />
-      )}
+      {currentPath === "/mytask" && taskData && <Column taskData={taskData} />}
       {currentPath === "/assigned" && assignedData && (
         <div className="w-full">
           <AssignedTask
@@ -104,7 +104,13 @@ export default function Board() {
       )}
       {currentPath === "/chat" && (
         <div className="w-full">
-          <Chat/>
+          <Chat />
+        </div>
+      )}
+
+      {currentPath === "/adduser" && (
+        <div className="w-full">
+          <AdminPage />
         </div>
       )}
 
@@ -121,5 +127,3 @@ export default function Board() {
     </div>
   );
 }
-
-

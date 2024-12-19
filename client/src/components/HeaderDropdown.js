@@ -6,13 +6,19 @@ import lightIcon from "../assets/icon-light-theme.svg";
 import { useDispatch, useSelector } from "react-redux";
 import themeSlice from "../redux/themeSlice";
 
-export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen }) {
+export default function HeaderDropdown({
+  setOpenDropdown,
+  setIsBoardModalOpen,
+}) {
   const dispatch = useDispatch();
   const theme = useSelector((state) => state.theme);
   const location = useLocation(); // Get current route
 
   // Function to determine if the route is active
   const isActive = (path) => location.pathname === path;
+
+  const userDetails = JSON.parse(localStorage.getItem("userDetails"));
+  const level = userDetails ? userDetails.level : null;
 
   return (
     <div
@@ -27,10 +33,11 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
       <div className="dropdown-modal">
         <h3>ALL BOARDS </h3>
         <div className="dropdown-boards">
-          
           {/* My Task nav item */}
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/mytask") ? "board-active" : ""}`} 
+            className={`dropdown-board dropdown-create-board-btn ${
+              isActive("/mytask") ? "board-active" : ""
+            }`}
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -42,7 +49,9 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
 
           {/* Dashboard nav item */}
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/dashboard") ? "board-active" : ""}`}
+            className={`dropdown-board dropdown-create-board-btn ${
+              isActive("/dashboard") ? "board-active" : ""
+            }`}
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -54,7 +63,9 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
 
           {/* Assigned Task nav item */}
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/assigned") ? "board-active" : ""}`} 
+            className={`dropdown-board dropdown-create-board-btn ${
+              isActive("/assigned") ? "board-active" : ""
+            }`}
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -65,7 +76,9 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
           </div>
 
           <div
-            className={`dropdown-board dropdown-create-board-btn ${isActive("/chat") ? "board-active" : ""}`} 
+            className={`dropdown-board dropdown-create-board-btn ${
+              isActive("/chat") ? "board-active" : ""
+            }`}
             onClick={() => {
               setIsBoardModalOpen(true);
               setOpenDropdown && setOpenDropdown((state) => !state);
@@ -75,6 +88,20 @@ export default function HeaderDropdown({ setOpenDropdown, setIsBoardModalOpen })
             <Link to="/chat">Chat</Link>
           </div>
 
+          {level === 100 && (
+            <div
+              className={`dropdown-board dropdown-create-board-btn ${
+                isActive("/adduser") ? "board-active" : ""
+              }`}
+              onClick={() => {
+                setIsBoardModalOpen(true);
+                setOpenDropdown && setOpenDropdown((state) => !state);
+              }}
+            >
+              <img className="filter-purple" alt="board" src={boardIcon} />
+              <Link to="/adduser">Add User</Link>
+            </div>
+          )}
         </div>
 
         {/* Theme Toggle */}
